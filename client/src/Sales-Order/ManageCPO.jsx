@@ -48,7 +48,7 @@ function ManageCPO() {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8000/customerpo/getCustomerPo"
+          "https://order-management-p53a.onrender.com/customerpo/getCustomerPo"
         );
 
 
@@ -80,7 +80,7 @@ function ManageCPO() {
 
     try {
       const response = await fetch(
-        "http://localhost:8000/customerpo/deleteCustomerPo",
+        "https://order-management-p53a.onrender.com/customerpo/deleteCustomerPo",
         {
           method: "DELETE",
           headers: {

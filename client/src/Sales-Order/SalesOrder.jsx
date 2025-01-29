@@ -22,7 +22,7 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
   useEffect(() => {
     const fetchCustomerData = async () => {
       const res = await axios.get(
-        "http://localhost:8000/customer/getCustomerData"
+        "https://order-management-p53a.onrender.com/customer/getCustomerData"
       );
       setCustomerData(res.data);
     };
@@ -78,14 +78,14 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
     try {
       if (existingOrder && existingOrder.CustomerSalesOrderID) {
         await axios.put(
-          `http://localhost:8000/customerpo/updateCustomerPo/${formData.CustomerSalesOrderID}`,
+          `https://order-management-p53a.onrender.com/customerpo/updateCustomerPo/${formData.CustomerSalesOrderID}`,
           data
         );
 
         toast.success("Sales Order updated successfully!");
       } else {
         await axios.post(
-          "http://localhost:8000/customerpo/insertCustomerPo",
+          "https://order-management-p53a.onrender.com/customerpo/insertCustomerPo",
           data
         );
         toast.success("Sales Order created successfully!");
