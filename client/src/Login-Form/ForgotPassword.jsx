@@ -10,7 +10,7 @@ function ForgotPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post("https://order-management-p53a.onrender.com/auth/forgotPassword", { email });
+      const { data } = await axios.post("http://localhost:8000/auth/forgotPassword", { email });
       console.log(data);
       setSubmitted(true);
     } catch (error) {

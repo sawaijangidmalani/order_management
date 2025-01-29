@@ -61,7 +61,7 @@ function Signin() {
 
     if (validForm()) {
       try {
-        const { data } = await axios.post("https://order-management-p53a.onrender.com/auth/signup", sign);
+        const { data } = await axios.post("http://localhost:8000/auth/signup", sign);
         if(data?.success){
           navigate("/dashboard")
         }        
