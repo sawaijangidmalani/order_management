@@ -1,0 +1,30 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon index.js",
+    "build": "npm i",
+    "debug": "ndb index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.2",
+    "caniuse-lite": "^1.0.30001687",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-validator": "^7.2.0",
+    "from": "^0.1.7",
+    "import": "^0.0.6",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.11.0",
+    "ndb": "^1.1.5",
+    "nodemailer": "^6.9.14",
+    "nodemon": "^3.1.4"
+  }
+}

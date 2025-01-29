@@ -1,0 +1,269 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.container {
+  width: 1338px;
+  padding: 25px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.StyledDiv {
+  display: flex;
+  justify-content: space-between;
+  margin: 5px 0px 5px 0px;
+}
+
+h1 {
+  font-size: 30px;
+  /* color: #007bff!important; */
+}
+
+.ButtonContainer {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.StyledIn {
+  width: 150px;
+  height: 40px;
+  padding: 5px;
+  border: 1px lightgray solid;
+}
+
+.StyledButtonSearch {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fffcfc;
+  text-align: center;
+  background-color: #007bff;
+  height: 40px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-left: 10px;
+  width: 120px;
+}
+
+.StyledButtonSearch:hover {
+  background-color: rgb(8, 65, 83);
+}
+
+h3 {
+  font-size: 20px;
+  /* color: #007bff!important; */
+}
+
+.StyledButtonAdd {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fffcfc;
+  text-align: center;
+  background-color: #007bff;
+  height: 40px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-left: 10px;
+  width: 155px;
+}
+
+.StyledButtonAdd:hover {
+  background-color: rgb(8, 65, 83);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  padding: 15px;
+}
+
+.table-bordered {
+  border: 1px solid #dee2e6;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: #f2f2f2;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #e9ecef;
+}
+
+.shadow {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.table-secondary th {
+  background-color: #e2e3e5;
+  color: #343a40;
+  padding: 8px 0px 9px 15px;
+  text-align: left;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.table td {
+  padding: 8px 0px 8px 15px;
+  vertical-align: middle;
+  font-size: 16px;
+}
+
+.btns1 {
+  border: none;
+  outline: none;
+  color: #007bff;
+  background: none;
+  cursor: pointer;
+  padding-right: 20px;
+  transition: transform 0.2s ease;
+}
+
+.btns1:hover {
+  color: rgb(41, 10, 244);
+  transform: scale(1.5);
+}
+.btns1:focus {
+  border: none;
+  outline: none;
+}
+
+.btns2 {
+  border: none;
+  outline: none;
+  color: #007bff;
+  background: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.btns2:hover {
+  color: rgb(244, 10, 10);
+  transform: scale(1.5);
+}
+.btns2:focus {
+  border: none;
+  outline: none;
+}
+
+.custom-edit-tooltip {
+  background-color: rgb(41, 10, 244) !important;
+  color: white !important;
+  border: none;
+  border-radius: 10%;
+}
+
+.custom-delete-tooltip {
+  background-color: rgb(250, 20, 20) !important;
+  color: white !important;
+  border: none;
+  border-radius: 10%;
+}
+
+.ant-tooltip-inner {
+  background-color: transparent;
+  border-radius: 10%;
+  border: none;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .StyledIn {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .ButtonContainer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .StyledButton {
+    width: 100%;
+    margin-top: 10px;
+  }
+}
+
+.StyledDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.LeftContainer,
+.RightContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dropdowncontainer{
+  position: relative;
+}
+
+.dropdownbutton {
+  width: 140px;
+  height: 40px;
+  background-color: white;
+  color: #333;
+  padding-left: 10px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  margin: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  cursor: pointer;
+}
+.dropdownbutton:focus {
+  outline: none;
+}
+
+.option {
+  padding: 10px;
+  cursor: pointer;
+}
+.option:hover {
+  background-color: #f0f0f0;
+}
+
+.dropdownoption{
+  position: absolute;
+  width: 140px;
+  max-height: 150px;
+  overflow-y: auto;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
+
+
+.item-price-form {
+  background-color: #eceeef;
+  display: flex;
+  flex-direction: column;
+  width: 650px;
+  padding: 30px;
+  margin-left: -50px;
+  border-radius: 10px;
+  height: auto;
+  position: absolute;
+  box-shadow: 0 5px 7px rgba(0, 0, 0, 0.2);
+}
