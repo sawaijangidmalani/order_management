@@ -50,7 +50,7 @@ nav a.active {
 .login .form {
   width: 100%;
   max-width: 500px;
-  height: 300px;
+  height: auto;
   margin: 150px;
   padding: 20px;
   border: 1px solid #ccc;
@@ -71,7 +71,7 @@ nav a.active {
 
 .form button[type="submit"],
 .login .form button {
-  width: 100%;
+  width: 50%;
   background-color: #007bff;
   color: #fff;
   padding: 14px 20px;

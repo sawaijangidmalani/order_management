@@ -112,16 +112,16 @@ function Home() {
   // Handle form submission
   const onSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (validForm()) {
       console.log("Submitting login form with:", credentials);
-  
+
       try {
         const { data } = await axios.post("http://localhost:8000/auth/login", {
           email: credentials.email,
           password: credentials.password,
         });
-  
+
         if (data?.result) {
           toast.success("User Login Successfully");
           navigate("/dashboard");

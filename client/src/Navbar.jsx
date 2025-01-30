@@ -25,6 +25,7 @@ function Navbar() {
               Sign Up
             </h2>
           </Link>
+          
         </div>
       </div>
     </>

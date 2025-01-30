@@ -3,12 +3,12 @@ import pool from "../utils/db.js";
 import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
+import crypto from "crypto";
 
 dotenv.config();
 
 const router = express.Router();
 
-// Set up the email transporter
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -17,17 +17,16 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Helper function to hash passwords
+const otpStore = new Map();
+
 const hashPassword = async (password) => {
   const salt = await bcrypt.genSalt(10);
   return bcrypt.hash(password, salt);
 };
 
-// Helper function to compare passwords
 const comparePassword = async (password, hash) => {
   return bcrypt.compare(password, hash);
 };
-
 
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
@@ -54,10 +53,15 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/signup", async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, name, username } = req.body;
+
+  if (!email || !password || !name || !username) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
 
   const checkEmailSql = "SELECT * FROM user WHERE email = ?";
-  const insertUserSql = "INSERT INTO user (email, password) VALUES (?, ?)";
+  const insertUserSql =
+    "INSERT INTO user (Username, name, email, passwordhash, isadmin, status) VALUES (?, ?, ?, ?, ?, ?)";
 
   try {
     const [existingUsers] = await pool.query(checkEmailSql, [email]);
@@ -66,8 +70,17 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({ message: "Email already exists" });
     }
 
-    const hashedPassword = await hashPassword(password);
-    await pool.query(insertUserSql, [email, hashedPassword]);
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await pool.query(insertUserSql, [
+      username,
+      name,
+      email,
+      hashedPassword,
+      0,
+      1,
+    ]);
+
     res
       .status(201)
       .json({ success: true, message: "User registered successfully" });
@@ -79,7 +92,7 @@ router.post("/signup", async (req, res) => {
 
 router.post("/forgotPassword", async (req, res) => {
   const { email } = req.body;
-  const checkEmailSql = "SELECT password FROM user WHERE email = ?";
+  const checkEmailSql = "SELECT * FROM user WHERE email = ?";
 
   try {
     const [result] = await pool.query(checkEmailSql, [email]);
@@ -88,33 +101,47 @@ router.post("/forgotPassword", async (req, res) => {
       return res.status(404).json({ error: "Email not found" });
     }
 
-    const userPassword = result[0].password;
+    const otp = crypto.randomInt(100000, 999999).toString();
+    otpStore.set(email, otp);
 
-    const sendForgotPasswordEmail = async () => {
-      try {
-        const info = await transporter.sendMail({
-          from: process.env.EMAIL_USER,
-          to: email,
-          subject: "Forgot Password",
-          text: `Your password is: ${userPassword}`,
-          html: `<b>Your password is: ${userPassword}</b>`,
-        });
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Password Reset OTP",
+      text: `Your OTP for password reset is: ${otp}`,
+      html: `<b>Your OTP for password reset is: ${otp}</b>`,
+    });
 
-        console.log("Message sent: %s", info.messageId);
-        return info;
-      } catch (error) {
-        console.error("Error sending email:", error);
-        throw error;
-      }
-    };
-
-    const info = await sendForgotPasswordEmail();
-    res
-      .status(200)
-      .json({ message: "Email sent successfully", messageId: info.messageId });
+    res.status(200).json({ message: "OTP sent to email" });
   } catch (error) {
-    console.error("Failed to send email:", error);
-    res.status(500).json({ error: "Failed to send email" });
+    console.error("Error sending email:", error);
+    res.status(500).json({ error: "Failed to send OTP" });
+  }
+});
+
+router.post("/verifyOTP", (req, res) => {
+  const { email, otp } = req.body;
+
+  if (!otpStore.has(email) || otpStore.get(email) !== otp) {
+    return res.status(400).json({ error: "Invalid or expired OTP" });
+  }
+
+  otpStore.delete(email);
+  res.status(200).json({ message: "OTP verified successfully" });
+});
+
+router.post("/resetPassword", async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  const hashedPassword = await hashPassword(newPassword);
+  const updatePasswordSql = "UPDATE user SET passwordhash = ? WHERE email = ?"; // Correct column name
+
+  try {
+    await pool.query(updatePasswordSql, [hashedPassword, email]);
+    res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Error updating password:", error);
+    res.status(500).json({ error: "Failed to update password" });
   }
 });
 

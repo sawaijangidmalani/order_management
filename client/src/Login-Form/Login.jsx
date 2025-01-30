@@ -6,7 +6,6 @@ import ApplayOut from "../pages/AppLayOut";
 import Navbar from "../Navbar";
 import axios from "axios";
 
-
 function Login() {
   const [isLogin, setIsLogin] = useState(false);
   const navigate = useNavigate();
@@ -63,13 +62,12 @@ function Login() {
     const newRecord = { ...name, id: new Date().getTime().toString() };
     setRecords([...records, newRecord]);
     console.log(setRecords);
-    // console.log("Login with me", name);
     if (validForm()) {
       alert("Success!!!!");
       setName({ email: "", password: "" });
       setIsLogin(true);
       setLoggedInUser(name.email);
-      navigate("/dashboard")
+      navigate("/dashboard");
     }
   };
 
@@ -82,9 +80,8 @@ function Login() {
           </>
         ) : (
           <>
-              <Header/>
+            <Header />
             <form onSubmit={onSubmits} className="form">
-
               <h2>Sign-in</h2>
               <div className="input-groups">
                 <div>

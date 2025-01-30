@@ -20,8 +20,7 @@ function Navbar1() {
 
       <div className="logout">
         <h2>
-
-          <FaUser/> Shark Bytes
+          <FaUser /> Shark Bytes
         </h2>
         <Tooltip title="Logout">
           <Link to="/">
