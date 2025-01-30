@@ -72,23 +72,19 @@ function Home() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  // Clear form on component mount
   useEffect(() => {
     setCredentials({ email: "", password: "" });
   }, []);
 
-  // Form validation
   const validForm = () => {
     let valid = true;
     const newError = { email: "", password: "" };
 
-    // Validate email
     if (credentials.email.trim() === "") {
       newError.email = "*Email is required";
       valid = false;
     }
 
-    // Validate password
     if (credentials.password.trim() === "") {
       newError.password = "*Password is required";
       valid = false;
@@ -98,18 +94,15 @@ function Home() {
     return valid;
   };
 
-  // Handle input changes
   const inputEvent = (e) => {
     const { value, name } = e.target;
     setCredentials((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Toggle password visibility
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
   };
 
-  // Handle form submission
   const onSubmit = async (e) => {
     e.preventDefault();
 
@@ -122,18 +115,22 @@ function Home() {
           password: credentials.password,
         });
 
-        if (data?.result) {
+        console.log("Response from server:", data);
+
+        if (data?.success) {
           toast.success("User Login Successfully");
           navigate("/dashboard");
         } else {
-          toast.error("Incorrect email or password");
+          toast.error(data?.message || "Incorrect email or password");
         }
       } catch (error) {
         console.error(
           "Error logging in:",
           error.response ? error.response.data : error
         );
-        toast.error("An error occurred while logging in");
+        toast.error(
+          error.response?.data?.message || "An error occurred while logging in"
+        );
       }
     }
   };

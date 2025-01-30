@@ -38,17 +38,21 @@ router.post("/login", async (req, res) => {
     if (result.length > 0) {
       const isMatch = await comparePassword(password, result[0].passwordhash);
 
-      if (!isMatch) {
-        res.json({ result: true, userDetails: result });
+      if (isMatch) {
+        res.json({ success: true, userDetails: result[0] }); // Login successful
       } else {
-        res.status(401).json({ message: "Invalid email or password" });
+        res
+          .status(401)
+          .json({ success: false, message: "Invalid email or password" });
       }
     } else {
-      res.status(401).json({ message: "Invalid  password" });
+      res
+        .status(401)
+        .json({ success: false, message: "Invalid email or password" });
     }
   } catch (err) {
     console.error("Error processing login request:", err);
-    res.status(500).json({ error: err });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 
