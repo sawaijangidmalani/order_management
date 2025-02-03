@@ -6,6 +6,7 @@ import ApplayOut from "./AppLayOut";
 import Navbar from "../Navbar";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { useAuth } from "../context/auth";
 
 const StyledDiv = styled.div`
   display: flex;
@@ -71,6 +72,7 @@ function Home() {
   const [error, setError] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const { auth, setAuth } = useAuth();
 
   useEffect(() => {
     setCredentials({ email: "", password: "" });
@@ -119,6 +121,11 @@ function Home() {
 
         if (data?.success) {
           toast.success("User Login Successfully");
+
+          // User details aur token ko localStorage aur state me set karein
+          localStorage.setItem("auth", JSON.stringify(data));
+          setAuth({ user: data.user, token: data.token });
+
           navigate("/dashboard");
         } else {
           toast.error(data?.message || "Incorrect email or password");

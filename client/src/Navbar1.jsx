@@ -1,10 +1,19 @@
 import { BiLogOutCircle } from "react-icons/bi";
 import { Link } from "react-router-dom";
 import { Tooltip } from "antd";
-import "./index.css";
 import { FaUser } from "react-icons/fa";
+import { useAuth } from "./context/auth";
+import "./index.css";
 
 function Navbar1() {
+  const { auth, setAuth } = useAuth();
+
+  // Logout function
+  const handleLogout = () => {
+    localStorage.removeItem("auth");
+    setAuth({ user: null, token: "" });
+  };
+
   return (
     <div className="navbar1">
       <div>
@@ -20,10 +29,10 @@ function Navbar1() {
 
       <div className="logout">
         <h2>
-          <FaUser /> Shark Bytes
+          <FaUser /> {auth?.user?.name || "Guest"}
         </h2>
         <Tooltip title="Logout">
-          <Link to="/">
+          <Link to="/" onClick={handleLogout}>
             <BiLogOutCircle className="logout-icon" />
           </Link>
         </Tooltip>

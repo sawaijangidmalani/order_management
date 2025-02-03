@@ -39,7 +39,15 @@ router.post("/login", async (req, res) => {
       const isMatch = await comparePassword(password, result[0].passwordhash);
 
       if (isMatch) {
-        res.json({ success: true, userDetails: result[0] }); // Login successful
+        // User details aur token bhejna
+        const user = {
+          id: result[0].Id,
+          name: result[0].name,
+          email: result[0].email,
+          isadmin: result[0].isadmin,
+        };
+
+        res.json({ success: true, user, token: "dummy_token_123" });
       } else {
         res
           .status(401)
@@ -138,7 +146,7 @@ router.post("/resetPassword", async (req, res) => {
   const { email, newPassword } = req.body;
 
   const hashedPassword = await hashPassword(newPassword);
-  const updatePasswordSql = "UPDATE user SET passwordhash = ? WHERE email = ?"; // Correct column name
+  const updatePasswordSql = "UPDATE user SET passwordhash = ? WHERE email = ?";
 
   try {
     await pool.query(updatePasswordSql, [hashedPassword, email]);

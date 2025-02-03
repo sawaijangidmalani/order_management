@@ -1,7 +1,6 @@
 * {
   margin: 0;
   padding: 0;
-
 }
 
 body {
@@ -14,7 +13,6 @@ a {
   text-decoration: none;
   color: inherit;
 }
-
 
 .navbar1 {
   display: flex;
@@ -39,9 +37,7 @@ a {
 .navbar1 .span img {
   margin-bottom: 0.2rem;
   padding: 0 5px;
- 
 }
-
 
 .logout {
   display: flex;
@@ -54,11 +50,11 @@ a {
 .logout h2 {
   display: flex;
   align-items: center;
-  /* background-color: white; */
+  background-color: white;
   border-radius: 10px;
- 
-width: 150px;
-  padding: 8px 15px ;
+
+  width: auto;
+  padding: 8px 15px;
   margin-left: 30px;
   font-size: 17px;
   color: #333;
@@ -72,10 +68,8 @@ width: 150px;
   cursor: pointer;
   transition: color 0.3s;
   margin-top: 14px;
-    margin-right: -35px;
+  margin-right: -35px;
 }
-
-
 
 /* Responsive Design */
 @media (max-width: 768px) {
@@ -93,10 +87,6 @@ width: 150px;
   }
 }
 
-
-
-
-
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -104,8 +94,7 @@ width: 150px;
   padding: 1rem 0.5rem;
   background-color: #124e88;
   gap: 10px;
-  } 
-
+}
 
 .navbar h2 {
   display: flex;
@@ -123,7 +112,7 @@ width: 150px;
   padding: 0 5px;
 }
 
-.stylemodal{
+.stylemodal {
   position: fixed;
   top: 0;
   left: 0;
@@ -132,4 +121,3 @@ width: 150px;
   background-color: none;
   backdrop-filter: blur(2px);
 }
-
