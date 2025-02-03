@@ -55,7 +55,7 @@ function ManagePurchase() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/po/getpo");
+        const response = await axios.get("https://order-management-p53a.onrender.com/po/getpo");
 
         const updatedData = response.data.map((purchase) => ({
           ...purchase,
@@ -89,7 +89,7 @@ function ManagePurchase() {
 
     try {
       const response = await fetch(
-        "http://localhost:8000/po/deletePurchaseOrder",
+        "https://order-management-p53a.onrender.com/po/deletePurchaseOrder",
         {
           method: "DELETE",
           headers: {
