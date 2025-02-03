@@ -75,8 +75,8 @@ function AddCustomer({
     }
   
     const apiUrl = editingCustomer
-      ? "https://order-management-p53a.onrender.com/customer/updateCustomer"
-      : "https://order-management-p53a.onrender.com/customer/add_customer";
+      ? "http://localhost:8000/customer/updateCustomer"
+      : "http://localhost:8000/customer/add_customer";
   
     axios
       .post(apiUrl, formData)

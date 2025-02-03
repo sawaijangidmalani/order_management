@@ -31,7 +31,7 @@ const PurchaseOrder = ({
     const fetchSalesData = async () => {
       try {
         const response = await axios.get(
-          "https://order-management-p53a.onrender.com/customerpo/getCustomerPo"
+          "http://localhost:8000/customerpo/getCustomerPo"
         );
         const updatedData = response.data.map((item) => ({
           CustomerSalesOrderID: item.CustomerSalesOrderID,
@@ -50,7 +50,7 @@ const PurchaseOrder = ({
     const fetchCustomerData = async () => {
       try {
         const response = await axios.get(
-          "https://order-management-p53a.onrender.com/customer/getCustomerData"
+          "http://localhost:8000/customer/getCustomerData"
         );
         setCustomerData(response.data);
       } catch (error) {
@@ -80,7 +80,7 @@ const PurchaseOrder = ({
 
       if (editData && editData.PurchaseOrderID) {
         response = await axios.put(
-          `https://order-management-p53a.onrender.com/po/updatepo/${editData.PurchaseOrderID}`,
+          `http://localhost:8000/po/updatepo/${editData.PurchaseOrderID}`,
           data
         );
 
@@ -88,7 +88,7 @@ const PurchaseOrder = ({
           toast.success("Purchase order updated successfully");
         }
       } else {
-        response = await axios.post("https://order-management-p53a.onrender.com/po/insertpo", data);
+        response = await axios.post("http://localhost:8000/po/insertpo", data);
 
         if (response.status === 200 || response.status === 201) {
           toast.success("Purchase order Saved successfully");

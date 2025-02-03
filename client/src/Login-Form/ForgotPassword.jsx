@@ -13,7 +13,7 @@ function ForgotPassword() {
   const sendOtp = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post("https://order-management-p53a.onrender.com/auth/forgotPassword", { email });
+      const { data } = await axios.post("http://localhost:8000/auth/forgotPassword", { email });
       setMessage(data.message || "OTP sent successfully");
       setStep(2);
     } catch (error) {
@@ -24,7 +24,7 @@ function ForgotPassword() {
   const verifyOtp = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post("https://order-management-p53a.onrender.com/auth/verifyOTP", { email, otp });
+      const { data } = await axios.post("http://localhost:8000/auth/verifyOTP", { email, otp });
       setMessage(data.message || "OTP verified successfully");
       setStep(3);
     } catch (error) {
@@ -35,7 +35,7 @@ function ForgotPassword() {
   const resetPassword = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post("https://order-management-p53a.onrender.com/auth/resetPassword", { email, newPassword });
+      const { data } = await axios.post("http://localhost:8000/auth/resetPassword", { email, newPassword });
       setMessage(data.message || "Password reset successfully!");
       setStep(4);
     } catch (error) {

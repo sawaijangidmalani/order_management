@@ -57,7 +57,7 @@ function ManageSuppliers() {
     const fetchSuppliers = async () => {
       try {
         const result = await axios.get(
-          "https://order-management-p53a.onrender.com/supplier/getSupplierData"
+          "http://localhost:8000/supplier/getSupplierData"
         );
 
         setSuppliers(result.data);
@@ -72,7 +72,7 @@ function ManageSuppliers() {
 
   const handleDelete = (email) => {
     axios
-      .delete(`https://order-management-p53a.onrender.com/supplier/deleteSupplier`, {
+      .delete(`http://localhost:8000/supplier/deleteSupplier`, {
         data: { email },
       })
       .then(() => {

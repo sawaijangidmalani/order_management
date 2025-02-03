@@ -13,33 +13,13 @@ dotenv.config();
 const app = express();
 
 
-// app.use(cors({ origin: '*' }));
+app.use(cors({ origin: '*' }));
 
 // app.use(cors({
-//   origin: 'https://order-management-p53a.onrender.com', 
+//   origin: 'https://order-management-x5fd.onrender.com', 
 //   methods: ['GET', 'POST', 'PUT', 'DELETE'], 
 //   credentials: true, 
 // }));
-
-// const cors = require("cors");
-
-const allowedOrigins = [
-  "https://order-management-p53a.onrender.com",
-  "https://order-management-1-sf96.onrender.com",
-];
-
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true,
-}));
-
 
 app.use(express.json());
 
