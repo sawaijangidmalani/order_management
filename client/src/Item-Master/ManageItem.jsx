@@ -16,6 +16,7 @@ import axios from "axios";
 import { Tooltip, Pagination, Popconfirm } from "antd";
 import "../Style/Customer.css";
 import toast from "react-hot-toast";
+import { FaSpinner } from "react-icons/fa";
 
 function ManageItem() {
   const [items, setItems] = useState([]);
@@ -36,11 +37,11 @@ function ManageItem() {
   const [selectedItemId, setSelectedItemId] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: "", order: "asc" });
-
   const [selectedItemStock, setSelectedItemStock] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    axios.get("https://order-management-p53a.onrender.com/item/getItems").then((data) => {
+    axios.get("http://localhost:8000/item/getItems").then((data) => {
       if (!data?.data?.error) {
         setItems(data?.data?.data);
         setFilteredItems(data?.data?.data);
@@ -159,7 +160,6 @@ function ManageItem() {
 
   const onPageChange = (page) => {
     setCurrentPage(page);
-    // fetchItemPrices();
   };
 
   const handleSort = (key) => {
@@ -176,8 +176,9 @@ function ManageItem() {
   };
 
   const handleDelete = (ItemID) => {
+    setIsLoading(true);
     axios
-      .delete("https://order-management-p53a.onrender.com/item/deleteItems", {
+      .delete("http://localhost:8000/item/deleteItems", {
         data: { ItemID: ItemID },
       })
       .then(() => {
@@ -188,10 +189,12 @@ function ManageItem() {
         setFilteredItems((prevItems) =>
           prevItems.filter((item) => item.ItemID !== ItemID)
         );
+        setIsLoading(false);
       })
       .catch((err) => {
         console.error("Error deleting item:", err);
         alert("Failed to delete item");
+        setIsLoading(false);
       });
   };
 
@@ -206,10 +209,9 @@ function ManageItem() {
   };
 
   const handleAddItem = (item) => {
-    // setEditItem(null);
     setEditItem(item);
     setShowModal(true);
-    setSelectedItemStock(item.Stock || 0); // New Added
+    setSelectedItemStock(item.Stock || 0);
   };
 
   const handleEditItem = (item) => {
@@ -229,7 +231,7 @@ function ManageItem() {
     try {
       const itemStockRequests = itemsToFetch.map((item) =>
         axios.get(
-          `https://order-management-p53a.onrender.com/itemPrice/getItemPrices/${item.ItemID}`
+          `http://localhost:8000/itemPrice/getItemPrices/${item.ItemID}`
         )
       );
       const responses = await Promise.all(itemStockRequests);
@@ -262,12 +264,17 @@ function ManageItem() {
 
   return (
     <>
+      {isLoading && (
+        <div className="overlay">
+          <FaSpinner className="spinner" />
+        </div>
+      )}
       <div className="container">
         <h1>Manage Items</h1>
         <div className="StyledDiv">
           <div className="LeftContainer">
             <div className="dropdowncontainer">
-              <button className="dropdownbutton" onClick={toggleItemDropdown}>
+              <button className="StyledIn" onClick={toggleItemDropdown}>
                 {selectedItem || "Select Item"}
               </button>
               {isItemDropdownOpen && (
@@ -300,7 +307,7 @@ function ManageItem() {
 
             <div className="dropdowncontainer">
               <button
-                className="dropdownbutton"
+                className="StyledIn"
                 onClick={toggleSupplierDropdown}
               >
                 {selectedSupplier || "Select Supplier"}
@@ -331,6 +338,7 @@ function ManageItem() {
                     ))}
                 </div>
               )}
+          
               <input
                 className="StyledIn"
                 type="text"
@@ -338,6 +346,7 @@ function ManageItem() {
                 onChange={handleInputChange}
                 placeholder="Search"
               />
+             
 
               <button className="StyledButtonSearch" onClick={handleSearch}>
                 <BiSearch /> Search

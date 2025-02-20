@@ -2,6 +2,8 @@ import axios from "axios";
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import toast from "react-hot-toast";
+import { FaSpinner } from "react-icons/fa";
+import "../Style/Add.css";
 
 const Modal = styled.div`
   position: fixed;
@@ -12,7 +14,6 @@ const Modal = styled.div`
 `;
 
 const AddItem = ({ editItem, closeModal }) => {
-
   const initialData = {
     ItemID: null,
     ProviderID: "1",
@@ -29,14 +30,14 @@ const AddItem = ({ editItem, closeModal }) => {
   const [suppliers, setSuppliers] = useState([]);
   const [itemUnits, setItemUnits] = useState([]);
   const [formVisible, setFormVisible] = useState(true);
+  const [loading, setLoading] = useState(false);
   const modalRef = useRef();
-
 
   const loadData = async () => {
     try {
       const [supplierRes, unitsRes] = await Promise.all([
-        axios.get("https://order-management-p53a.onrender.com/supplier/getSupplierData"),
-        axios.get("https://order-management-p53a.onrender.com/item/getItemUnits"),
+        axios.get("http://localhost:8000/supplier/getSupplierData"),
+        axios.get("http://localhost:8000/item/getItemUnits"),
       ]);
       setSuppliers(supplierRes.data);
       setItemUnits(unitsRes.data);
@@ -46,11 +47,9 @@ const AddItem = ({ editItem, closeModal }) => {
     }
   };
 
-
   useEffect(() => {
     loadData();
   }, []);
-
 
   useEffect(() => {
     if (editItem && editItem.ItemID) {
@@ -66,11 +65,10 @@ const AddItem = ({ editItem, closeModal }) => {
         ItemUnitID: editItem.ItemUnitID || "",
       });
     } else {
-      setFormData({ ...initialData }); 
+      setFormData({ ...initialData });
     }
   }, [editItem]);
 
- 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -79,19 +77,20 @@ const AddItem = ({ editItem, closeModal }) => {
     }));
   };
 
- 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     if (!formData.SupplierID || !formData.Name) {
       toast.error("Please fill out all required fields.");
+      setLoading(false);
       return;
     }
 
     const isEditMode = editItem && editItem.ItemID;
     const apiUrl = isEditMode
-      ? "https://order-management-p53a.onrender.com/item/updateItems"
-      : "https://order-management-p53a.onrender.com/item/add_items";
+      ? "http://localhost:8000/item/updateItems"
+      : "http://localhost:8000/item/add_items";
 
     try {
       const response = await axios.post(apiUrl, formData);
@@ -99,11 +98,9 @@ const AddItem = ({ editItem, closeModal }) => {
         toast.error(response.data.message || "Failed to process request.");
       } else {
         toast.success(
-          isEditMode
-            ? "Item updated successfully!"
-            : "Item added successfully!"
+          isEditMode ? "Item updated successfully!" : "Item added successfully!"
         );
-        // window.location.reload();
+        window.location.reload();
         loadData();
         closeModal();
       }
@@ -111,6 +108,7 @@ const AddItem = ({ editItem, closeModal }) => {
       console.error("Error submitting form:", error);
       toast.error("Something went wrong. Please try again.");
     }
+    setLoading(false);
     setFormVisible(false);
   };
 
@@ -121,6 +119,12 @@ const AddItem = ({ editItem, closeModal }) => {
 
   return (
     <>
+      {loading && (
+        <div className="overlay">
+          <FaSpinner className="spinner" />
+        </div>
+      )}
+
       {formVisible && (
         <div className="style-model">
           <Modal ref={modalRef}>
@@ -204,6 +208,7 @@ const AddItem = ({ editItem, closeModal }) => {
                   value={formData.ItemUnitID}
                   onChange={handleInputChange}
                   className="customer-form__input"
+                  required
                 >
                   <option value="">Select Unit</option>
                   {itemUnits.map((unit) => (
@@ -229,13 +234,18 @@ const AddItem = ({ editItem, closeModal }) => {
               </label>
 
               <div className="customer-form__button-container">
-                <button type="submit" className="customer-form__button">
-                  Save
+                <button
+                  type="submit"
+                  className="customer-form__button"
+                  disabled={loading}
+                >
+                  {loading ? "Saving..." : "Save"}
                 </button>
                 <button
                   type="button"
                   className="customer-form__button"
                   onClick={handleCancel}
+                  disabled={loading}
                 >
                   Cancel
                 </button>

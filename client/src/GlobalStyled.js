@@ -1,4 +1,4 @@
-/* Colors adapted from https://tailwindcss.com/docs/customizing-colors */
+//  Colors adapted from https://tailwindcss.com/docs/customizing-colors
 
 import { createGlobalStyle } from "styled-components";
 

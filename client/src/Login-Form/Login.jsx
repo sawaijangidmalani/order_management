@@ -19,7 +19,6 @@ function Login() {
   });
   const [showPassword, setShowPassword] = useState(false);
 
-  // Reset state when the component mounts
   useEffect(() => {
     setName({ email: "", password: "" });
   }, []);

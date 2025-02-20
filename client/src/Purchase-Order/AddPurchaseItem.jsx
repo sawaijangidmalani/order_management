@@ -20,7 +20,7 @@ function AddPurchaseItem({ selectedPurchaseId }) {
   const fetchItemsData = async () => {
     try {
       const res = await axios.get(
-        "https://order-management-p53a.onrender.com/po/getpurchaseorderitems"
+        "http://localhost:8000/po/getpurchaseorderitems"
       );
 
       if (res.data && res.data.data) {
@@ -53,7 +53,7 @@ function AddPurchaseItem({ selectedPurchaseId }) {
   const handleDelete = async (PurchaseOrderItemID) => {
     try {
       await axios.delete(
-        `https://order-management-p53a.onrender.com/po/deleteItem/${PurchaseOrderItemID}`
+        `http://localhost:8000/po/deleteItem/${PurchaseOrderItemID}`
       );
       toast.success("Purchase item deleted successfully!");
       fetchItemsData();

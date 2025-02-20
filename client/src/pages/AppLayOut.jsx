@@ -9,21 +9,29 @@ const StyledApplay = styled.div`
   height: 90vh;
 
   @media (max-width: 768px) {
-    max-width: 100vh;
+    grid-template-columns: 1fr;
+    height: auto;
   }
 `;
+
 const Main = styled.main`
   background-color: #f4efef;
   padding: 4rem 4.8rem 6.4rem;
-  /* overflow: scroll; */
+
+  @media (max-width: 768px) {
+    padding: 2rem;
+  }
 `;
+
 const Container = styled.div`
-  max-width: 150rem;
+  /* max-width: 150rem; */
   display: flex;
   flex-direction: column;
   gap: 3.2rem;
+
   @media (max-width: 768px) {
     max-width: 100%;
+    padding: 0 1rem;
   }
 `;
 
@@ -31,17 +39,16 @@ function ApplayOut() {
   return (
     <>
       <Navbar1 />
-      <div>
-        <StyledApplay>
-          <Sidebar />
-          <Main>
-            <Container>
-              <Outlet />
-            </Container>
-          </Main>
-        </StyledApplay>
-      </div>
+      <StyledApplay>
+        <Sidebar />
+        <Main>
+          <Container>
+            <Outlet />
+          </Container>
+        </Main>
+      </StyledApplay>
     </>
   );
 }
+
 export default ApplayOut;

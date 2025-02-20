@@ -1,8 +1,10 @@
- *{
-  font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
-  font-size: 17px;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
 }
-
 
 .salesorder-form {
   width: 780px;
@@ -15,15 +17,11 @@
 }
 
 .salesorder-form-heading {
-   grid-column: 1 / span 2; 
-  /*text-align: center;
-  font-size: 20px; */
-
+  grid-column: 1 / span 2;
   text-align: center;
   margin-top: 0;
   margin-bottom: 10px;
   font-size: 20px;
-
 }
 
 .customer-salesorder_input,
@@ -37,11 +35,8 @@
 }
 
 button.add-item {
-  /* grid-column: 1 / span 2;  */
   margin-top: 24px;
-    /* margin-left: 5px; */
 }
-
 
 .add-item {
   background: rgb(83, 83, 218);
@@ -51,12 +46,34 @@ button.add-item {
   width: 100px;
   height: 35px;
   border: none;
+  border-radius: 5px;
+  transition: background-color 0.3s;
 }
 
+.add-item:hover {
+  background: rgb(63, 63, 188);
+}
 
 @media screen and (max-width: 768px) {
   .salesorder-form {
-    grid-template-columns: 1fr; 
+    grid-template-columns: 1fr;
+    padding: 15px;
+    width: 100%;
+  }
+
+  .salesorder-form-heading {
+    font-size: 18px;
+  }
+
+  .customer-salesorder_input,
+  .date-salesorder_input,
+  .invoice-salesorder_input,
+  .status-salesorder_input {
+    height: 40px;
+  }
+
+  button.add-item {
+    width: 100%;
+    margin-top: 20px;
   }
 }
-

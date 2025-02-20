@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import styled from "styled-components";
 import toast from "react-hot-toast";
+import "../Style/Add.css";
+import { FaSpinner } from "react-icons/fa";
 
 const Modal = styled.div`
   position: fixed;
@@ -25,11 +27,12 @@ const AddorEditCustomer = ({
   const [unitCost, setUnitCost] = useState("");
   const [salesPrice, setSalesPrice] = useState("");
   const [tax, setTax] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get("https://order-management-p53a.onrender.com/item/getItems");
+        const res = await axios.get("http://localhost:8000/item/getItems");
         setProducts(res.data.data);
       } catch (err) {
         console.error("Error fetching products:", err);
@@ -97,6 +100,8 @@ const AddorEditCustomer = ({
       return;
     }
 
+    setLoading(true);
+
     const salesOrderItem = {
       CustomerSalesOrderItemID: itemToEdit?.CustomerSalesOrderItemID || null,
       CustomerSalesOrderID: selectedSaleId,
@@ -107,22 +112,18 @@ const AddorEditCustomer = ({
       Tax: parseFloat(tax) || 0,
     };
 
-    
     console.log("Item to Edit:", itemToEdit);
-  
-
-
 
     try {
       let response;
       if (itemToEdit) {
         response = await axios.put(
-          "https://order-management-p53a.onrender.com/customerpo/editsalesorderitem",
+          "http://localhost:8000/customerpo/editsalesorderitem",
           salesOrderItem
         );
       } else {
         response = await axios.post(
-          "https://order-management-p53a.onrender.com/customerpo/addsalesorderitems",
+          "http://localhost:8000/customerpo/addsalesorderitems",
           salesOrderItem
         );
       }
@@ -148,10 +149,16 @@ const AddorEditCustomer = ({
       console.error("Error submitting sales order item:", error);
       toast.error("Error: " + error.message);
     }
+    setLoading(false);
   };
 
   return (
     <Modal>
+      {loading && (
+        <div className="overlay">
+          <FaSpinner className="spinner" />
+        </div>
+      )}
       <div className="body-container">
         <form onSubmit={handleSubmit} className="customer-form">
           <h3 className="form-heading">
@@ -159,6 +166,7 @@ const AddorEditCustomer = ({
           </h3>
           <label htmlFor="item" className="customer-form__label">
             Item:
+            <span style={{ color: "red" }}>*</span>
             <select
               id="item"
               value={selectedProduct?.Name || ""}
@@ -188,6 +196,7 @@ const AddorEditCustomer = ({
 
           <label htmlFor="allocatedQty" className="customer-form__label">
             Allocated Qty:
+            <span style={{ color: "red" }}>*</span>
             <input
               id="allocatedQty"
               type="number"
@@ -211,6 +220,7 @@ const AddorEditCustomer = ({
 
           <label htmlFor="unitCost" className="customer-form__label">
             Unit Cost:
+            <span style={{ color: "red" }}>*</span>
             <input
               id="unitCost"
               type="number"
@@ -223,6 +233,7 @@ const AddorEditCustomer = ({
 
           <label htmlFor="tax" className="customer-form__label">
             Tax (%):
+            <span style={{ color: "red" }}>*</span>
             <input
               id="tax"
               type="number"
@@ -241,13 +252,19 @@ const AddorEditCustomer = ({
               value={salesPrice}
               readOnly
               className="customer-form__input"
-              required
             />
           </label>
 
           <div className="customer-form__button-container">
-            <button type="submit" className="customer-form__button">
+            {/* <button type="submit" className="customer-form__button">
               Save
+            </button> */}
+            <button
+              type="submit"
+              className="customer-form__button"
+              disabled={loading}
+            >
+              {loading ? "Saving..." : "Save"}
             </button>
             <button
               type="button"

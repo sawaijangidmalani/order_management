@@ -3,12 +3,11 @@ import { Link } from "react-router-dom";
 import { Tooltip } from "antd";
 import { FaUser } from "react-icons/fa";
 import { useAuth } from "./context/auth";
-import "./index.css";
+import "../src/Style/Navbar.css"
 
 function Navbar1() {
   const { auth, setAuth } = useAuth();
 
-  // Logout function
   const handleLogout = () => {
     localStorage.removeItem("auth");
     setAuth({ user: null, token: "" });

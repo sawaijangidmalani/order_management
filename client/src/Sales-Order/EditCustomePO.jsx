@@ -34,12 +34,14 @@ function EditCustomerPO({ onSalesData, saleData, customers }) {
       <h3 className="salesorder-form-heading">Add / Edit Customer PO</h3>
       <label htmlFor="customer" className="customer-salesorder_label">
         Customer Name
+        <span style={{ color: "red" }}>*</span>
       </label>
       <select
         id="customer"
         value={customer}
         onChange={(event) => setCustomer(event.target.value)}
         className="customer-salesorder_input"
+        required
       >
         {customers.map((cust) => (
           <option key={cust.id} value={cust.name}>
@@ -49,6 +51,7 @@ function EditCustomerPO({ onSalesData, saleData, customers }) {
       </select>
       <label htmlFor="invoice" className="invoice-salesorder_label">
         Customer PO
+        <span style={{ color: "red" }}>*</span>
       </label>
       <input
         type="text"
@@ -56,9 +59,11 @@ function EditCustomerPO({ onSalesData, saleData, customers }) {
         value={invoice}
         onChange={(event) => setInvoice(event.target.value)}
         className="invoice-salesorder_input"
+        required
       />
       <label htmlFor="date" className="date-salesorder_label">
         Date:
+        <span style={{ color: "red" }}>*</span>
       </label>
       <input
         type="date"
@@ -66,9 +71,11 @@ function EditCustomerPO({ onSalesData, saleData, customers }) {
         value={date}
         onChange={(event) => setDate(event.target.value)}
         className="date-salesorder_input"
+        required
       />
       <label htmlFor="total" className="total-salesorder_label">
         Total Purchase
+        <span style={{ color: "red" }}>*</span>
       </label>
       <input
         type="number"
@@ -76,15 +83,18 @@ function EditCustomerPO({ onSalesData, saleData, customers }) {
         value={total}
         onChange={(event) => setTotal(event.target.value)}
         className="total-salesorder_input"
+        required
       />
       <label htmlFor="status" className="status-salesorder_label">
         Status:
+        <span style={{ color: "red" }}>*</span>
       </label>
       <select 
         id="status"
         value={status}
         onChange={(event) => setStatus(event.target.value)}
         className="status-salesorder_input"
+        required
       >
         <option value="Draft">Draft</option>
         <option value="Active">Active</option>

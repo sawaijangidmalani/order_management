@@ -12,6 +12,7 @@ import axios from "axios";
 import { Tooltip, Pagination, Modal, Popconfirm } from "antd";
 import "../Style/Customer.css";
 import toast from "react-hot-toast";
+import { FaSpinner } from "react-icons/fa";
 
 function ManageCustomer() {
   const [customers, setCustomers] = useState([]);
@@ -24,6 +25,7 @@ function ManageCustomer() {
   const [filteredCustomers, setFilteredCustomers] = useState([]);
   const [sortField, setSortField] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const value = e.target.value;
@@ -58,7 +60,7 @@ function ManageCustomer() {
     const fetchCustomers = async () => {
       try {
         const result = await axios.get(
-          "https://order-management-p53a.onrender.com/customer/getCustomerData"
+          "http://localhost:8000/customer/getCustomerData"
         );
         setCustomers(result.data);
         setFilteredCustomers(result.data);
@@ -71,8 +73,9 @@ function ManageCustomer() {
   }, []);
 
   const handleDelete = (email) => {
+    setIsLoading(true);
     axios
-      .delete(`https://order-management-p53a.onrender.com/customer/deleteCustomer`, {
+      .delete(`http://localhost:8000/customer/deleteCustomer`, {
         data: { email },
       })
       .then(() => {
@@ -82,9 +85,11 @@ function ManageCustomer() {
           filteredCustomers.filter((customer) => customer.email !== email)
         );
         window.location.reload();
+        setIsLoading(false);
       })
       .catch((err) => {
         console.log(err);
+        setIsLoading(false);
       });
   };
 
@@ -163,8 +168,13 @@ function ManageCustomer() {
 
   return (
     <>
+      {isLoading && (
+        <div className="overlay">
+          <FaSpinner className="spinner" />
+        </div>
+      )}
       <div className="container">
-        <h1>Manage Customers</h1>
+        <h2>Manage Customers</h2>
         <div className="StyledDiv">
           <div className="ButtonContainer">
             <div>
@@ -186,7 +196,7 @@ function ManageCustomer() {
         </div>
 
         <div className="table-responsive">
-          <h2>Customer List</h2>
+          <h1>Customer List</h1>
           <table className="table table-bordered table-striped table-hover shadow">
             <thead className="table-secondary">
               <tr>

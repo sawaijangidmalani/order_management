@@ -3,6 +3,8 @@ import { useEffect, useState, useRef } from "react";
 import "../Style/Add.css";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { FaSpinner } from "react-icons/fa";
 
 const Modal = styled.div`
   position: fixed;
@@ -12,14 +14,10 @@ const Modal = styled.div`
   border-radius: 20px;
 `;
 
-function AddSuppliers({
-  suppliers,
-  closeModal,
-  editingSuppliers,
-  updateSupplierList,
-}) {
+function AddSuppliers({ closeModal, editingSuppliers }) {
   const navigate = useNavigate();
   const modalRef = useRef();
+  const [loading, setLoading] = useState(false);
 
   const initialData = {
     SupplierID: null,
@@ -71,32 +69,35 @@ function AddSuppliers({
     e.preventDefault();
 
     if (!formData.Email || !formData.Name || !formData.Phone) {
-      alert("Please fill out all required fields.");
+      toast.error("Please fill out all required fields.");
       return;
     }
 
+    setLoading(true);
+
     const apiUrl = editingSuppliers
-      ? "https://order-management-p53a.onrender.com/supplier/updateSupplier"
-      : "https://order-management-p53a.onrender.com/supplier/add_supplier";
+      ? "http://localhost:8000/supplier/updateSupplier"
+      : "http://localhost:8000/supplier/add_supplier";
 
     axios
       .post(apiUrl, formData)
       .then((response) => {
-        alert(
+        toast.success(
           editingSuppliers
-            ? "Supplier updated successfully"
-            : "Supplier saved successfully"
+            ? "Supplier updated successfully!"
+            : "Supplier saved successfully!"
         );
-        window.location.reload();
-        navigate("/supplier");
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       })
       .catch((error) => {
-        alert("Something went wrong. Try again.");
+        toast.error("Something went wrong. Try again.");
         console.error("Error:", error);
       });
 
     setShowForm(false);
-    closeModal();
   };
 
   const handleCancel = (e) => {
@@ -106,6 +107,11 @@ function AddSuppliers({
 
   return (
     <div>
+      {loading && (
+        <div className="overlay">
+          <FaSpinner className="spinner" />
+        </div>
+      )}
       {showForm && (
         <div className="style-model">
           <Modal ref={modalRef}>
@@ -114,20 +120,7 @@ function AddSuppliers({
                 <h3 className="form-heading">
                   {editingSuppliers ? "Edit Supplier" : "Add Supplier"}
                 </h3>
-
- {/* <label className="customer-form__label">
-                  Provider ID:
-                  <input
-                    type="number"
-                    name="ProviderID"
-                    value={formData.ProviderID}
-                    onChange={handleInputChange}
-                    className="customer-form__input"
-                    required
-                  />
-                </label> */}
-
-<label className="customer-form__label">
+                <label className="customer-form__label">
                   Name:
                   <span style={{ color: "red" }}>*</span>
                   <input
@@ -222,6 +215,7 @@ function AddSuppliers({
                     value={formData.Status}
                     onChange={handleInputChange}
                     className="customer-form__input"
+                    required
                   >
                     <option>Select Status</option>
                     <option value={1}>Active</option>
@@ -238,7 +232,7 @@ function AddSuppliers({
                     value={formData.GST}
                     onChange={handleInputChange}
                     className="customer-form__input"
-                    // required
+                    required
                     pattern="^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}[Z]{1}[0-9A-Z]{1}$"
                     maxLength="15"
                     title="Please enter a valid 15-character GSTIN (e.g., 22AAAAA0000A1Z5)"
@@ -248,10 +242,10 @@ function AddSuppliers({
                 <div className="customer-form__button-container">
                   <button
                     type="submit"
-                    value="submit"
                     className="customer-form__button"
+                    disabled={loading}
                   >
-                    Save
+                    {loading ? "Saving..." : "Save"}
                   </button>
                   <button
                     type="button"

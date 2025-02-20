@@ -35,29 +35,34 @@ router.post("/login", async (req, res) => {
   try {
     const [result] = await pool.query(sql, [email]);
 
-    if (result.length > 0) {
-      const isMatch = await comparePassword(password, result[0].passwordhash);
-
-      if (isMatch) {
-        // User details aur token bhejna
-        const user = {
-          id: result[0].Id,
-          name: result[0].name,
-          email: result[0].email,
-          isadmin: result[0].isadmin,
-        };
-
-        res.json({ success: true, user, token: "dummy_token_123" });
-      } else {
-        res
-          .status(401)
-          .json({ success: false, message: "Invalid email or password" });
-      }
-    } else {
-      res
+    if (result.length === 0) {
+      // Email exist nahi karta
+      return res
         .status(401)
-        .json({ success: false, message: "Invalid email or password" });
+        .json({ success: false, message: "Incorrect Email" });
     }
+
+    const user = result[0];
+    const isMatch = await comparePassword(password, user.passwordhash);
+
+    if (!isMatch) {
+      // Password galat hai
+      return res
+        .status(401)
+        .json({ success: false, message: "Incorrect Password" });
+    }
+
+    // Email & Password dono sahi hai
+    res.json({
+      success: true,
+      user: {
+        id: user.Id,
+        name: user.name,
+        email: user.email,
+        isadmin: user.isadmin,
+      },
+      token: "dummy_token_123",
+    });
   } catch (err) {
     console.error("Error processing login request:", err);
     res.status(500).json({ success: false, message: "Internal server error" });
@@ -79,7 +84,7 @@ router.post("/signup", async (req, res) => {
     const [existingUsers] = await pool.query(checkEmailSql, [email]);
 
     if (existingUsers.length > 0) {
-      return res.status(400).json({ message: "Email already exists" });
+      return res.status(409).json({ message: "Email already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);

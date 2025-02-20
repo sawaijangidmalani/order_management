@@ -1,94 +1,47 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { MdEmail, MdVisibility, MdVisibilityOff } from "react-icons/md";
-import styled from "styled-components";
-import ApplayOut from "./AppLayOut";
-import Navbar from "../Navbar";
+import { FaSpinner } from "react-icons/fa";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/auth";
-
-const StyledDiv = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 30px;
-`;
-
-const FormContainer = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-`;
-
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  width: 300px;
-`;
-
-const InputGroup = styled.div`
-  display: flex;
-  align-items: center;
-  position: relative;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 10px;
-  padding-right: 40px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-`;
-
-const Icon = styled.div`
-  position: absolute;
-  right: 10px;
-  cursor: pointer;
-`;
-
-const ErrorText = styled.span`
-  color: red;
-  font-size: 12px;
-`;
-
-const Button = styled.button`
-  padding: 10px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #0056b3;
-  }
-`;
+import "../Style/Home.css";
 
 function Home() {
   const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [error, setError] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
-  const { auth, setAuth } = useAuth();
+  const { setAuth } = useAuth();
 
   useEffect(() => {
-    setCredentials({ email: "", password: "" });
+    const savedCredentials = JSON.parse(localStorage.getItem("rememberMeData"));
+    if (savedCredentials) {
+      setCredentials(savedCredentials);
+      setRememberMe(true);
+    }
   }, []);
 
   const validForm = () => {
     let valid = true;
     const newError = { email: "", password: "" };
 
-    if (credentials.email.trim() === "") {
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!credentials.email.trim()) {
       newError.email = "*Email is required";
+      valid = false;
+    } else if (!emailPattern.test(credentials.email)) {
+      newError.email = "*Please enter a valid email address";
       valid = false;
     }
 
-    if (credentials.password.trim() === "") {
+    if (!credentials.password.trim()) {
       newError.password = "*Password is required";
+      valid = false;
+    } else if (credentials.password.length < 6) {
+      newError.password = "*Please enter a valid password (min 6 characters)";
       valid = false;
     }
 
@@ -105,102 +58,122 @@ function Home() {
     setShowPassword((prev) => !prev);
   };
 
+  const handleRememberMe = () => {
+    setRememberMe(!rememberMe);
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
-
     if (validForm()) {
-      console.log("Submitting login form with:", credentials);
-
+      setLoading(true);
       try {
-        const { data } = await axios.post("https://order-management-p53a.onrender.com/auth/login", {
-          email: credentials.email,
-          password: credentials.password,
-        });
-
-        console.log("Response from server:", data);
-
+        const { data } = await axios.post(
+          "http://localhost:8000/auth/login",
+          credentials
+        );
         if (data?.success) {
           toast.success("User Login Successfully");
-
-          // User details aur token ko localStorage aur state me set karein
           localStorage.setItem("auth", JSON.stringify(data));
           setAuth({ user: data.user, token: data.token });
 
+          if (rememberMe) {
+            localStorage.setItem("rememberMeData", JSON.stringify(credentials));
+          } else {
+            localStorage.removeItem("rememberMeData");
+          }
           navigate("/dashboard");
         } else {
           toast.error(data?.message || "Incorrect email or password");
         }
       } catch (error) {
-        console.error(
-          "Error logging in:",
-          error.response ? error.response.data : error
-        );
         toast.error(
           error.response?.data?.message || "An error occurred while logging in"
         );
+      } finally {
+        setLoading(false);
       }
     }
   };
 
   return (
-    <>
-      <div className="login">
-        <Navbar />
-        <StyledDiv>
-          <FormContainer>
-            <div className="img">
-              <img
-                src="login-v2.svg"
-                alt="login illustration"
-                style={{ width: "80%", height: "80vh" }}
+    <div className="login-container">
+      <div className="login-card">
+        {loading && (
+          <div className="loading-overlay">
+            <FaSpinner className="loading-spinner" />
+          </div>
+        )}
+        <div className="login-header">
+          <h1>Welcome Back</h1>
+          <p>Please sign in to continue</p>
+        </div>
+
+        <form className="login-form" onSubmit={onSubmit}>
+          <div className="form-group">
+            <label>Email</label>
+            <div className="input-wrapper">
+              <input
+                type="email"
+                name="email"
+                placeholder="Enter your email"
+                autoComplete="email"
+                onChange={inputEvent}
+                value={credentials.email}
               />
+              <MdEmail className="input-icon" />
             </div>
-            <Form onSubmit={onSubmit}>
-              <h2>Sign-in</h2>
-              <InputGroup>
-                <Input
-                  type="email"
-                  placeholder="Email"
-                  name="email"
-                  onChange={inputEvent}
-                  value={credentials.email}
+            <span className="error-text">{error.email}</span>
+          </div>
+
+          <div className="form-group">
+            <label>Password</label>
+            <div className="input-wrapper">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Enter your password"
+                autoComplete="current-password"
+                onChange={inputEvent}
+                value={credentials.password}
+              />
+              {showPassword ? (
+                <MdVisibilityOff
+                  className="input-icon"
+                  onClick={togglePasswordVisibility}
                 />
-                <MdEmail className="icon" />
-              </InputGroup>
-              <ErrorText>{error.email}</ErrorText>
-              <InputGroup>
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  name="password"
-                  onChange={inputEvent}
-                  value={credentials.password}
+              ) : (
+                <MdVisibility
+                  className="input-icon"
+                  onClick={togglePasswordVisibility}
                 />
-                {showPassword ? (
-                  <Icon onClick={togglePasswordVisibility}>
-                    <MdVisibilityOff />
-                  </Icon>
-                ) : (
-                  <Icon onClick={togglePasswordVisibility}>
-                    <MdVisibility />
-                  </Icon>
-                )}
-              </InputGroup>
-              <ErrorText>{error.password}</ErrorText>
-              <div className="switch">
-                <Link
-                  to="/forgot"
-                  style={{ textDecoration: "none", float: "right" }}
-                >
-                  Forgot Password ?
-                </Link>
-              </div>
-              <Button type="submit">Log-in</Button>
-            </Form>
-          </FormContainer>
-        </StyledDiv>
+              )}
+            </div>
+            <span className="error-text">{error.password}</span>
+          </div>
+
+          <div className="form-group checkbox-group">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={handleRememberMe}
+              />
+              <span className="checkbox-text">Remember me</span>
+            </label>
+          </div>
+
+          <button className="login-button" type="submit" disabled={loading}>
+            Login
+          </button>
+
+          <div className="additional-options">
+            <Link to="/forgot">Forgot Password?</Link>
+            <span className="separator">•</span>
+            <Link to="/signin">Create Account</Link>
+          </div>
+        </form>
       </div>
-    </>
+    </div>
   );
 }
 

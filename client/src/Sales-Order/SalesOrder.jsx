@@ -5,12 +5,15 @@ import AddOrEditCustomer from "./AddorEditCustomer";
 import axios from "axios";
 import "../Style/Add.css";
 import { toast } from "react-hot-toast";
+import { FaSpinner } from "react-icons/fa";
 
 const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
   const [customerData, setCustomerData] = useState([]);
   const [salesOrderItems, setSalesOrderItems] = useState([]);
   const [addClick, setAddClick] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+const [loading, setLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     CustomerID: "",
     ProviderID: "1",
@@ -22,7 +25,7 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
   useEffect(() => {
     const fetchCustomerData = async () => {
       const res = await axios.get(
-        "https://order-management-p53a.onrender.com/customer/getCustomerData"
+        "http://localhost:8000/customer/getCustomerData"
       );
       setCustomerData(res.data);
     };
@@ -68,6 +71,7 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setLoading(true);
     const data = {
       ...formData,
       Items: salesOrderItems,
@@ -78,17 +82,18 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
     try {
       if (existingOrder && existingOrder.CustomerSalesOrderID) {
         await axios.put(
-          `https://order-management-p53a.onrender.com/customerpo/updateCustomerPo/${formData.CustomerSalesOrderID}`,
+          `http://localhost:8000/customerpo/updateCustomerPo/${formData.CustomerSalesOrderID}`,
           data
         );
 
         toast.success("Sales Order updated successfully!");
       } else {
         await axios.post(
-          "https://order-management-p53a.onrender.com/customerpo/insertCustomerPo",
+          "http://localhost:8000/customerpo/insertCustomerPo",
           data
         );
         toast.success("Sales Order created successfully!");
+        setLoading(false);
       }
       window.location.reload();
       onClose();
@@ -99,6 +104,7 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
         err.response ? err.response.data : err.message
       );
     }
+    setLoading(false);
   };
 
   const handleDeleteItem = (index) => {
@@ -131,6 +137,11 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
 
   return (
     <>
+     {loading && (
+            <div className="overlay">
+              <FaSpinner className="spinner" />
+            </div>
+          )}
       {addClick ? (
         <AddOrEditCustomer
           onClose={handleCancel}
@@ -145,6 +156,7 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
 
             <label htmlFor="customer" className="salesorder-form-label">
               Customer:
+              <span style={{ color: "red" }}>*</span>
               <select
                 id="customer"
                 name="CustomerID"
@@ -164,6 +176,7 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
 
             <label htmlFor="salesOrderNumber" className="salesorder-form-label">
               Customer PO:
+              <span style={{ color: "red" }}>*</span>
               <input
                 type="text"
                 id="salesOrderNumber"
@@ -177,6 +190,7 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
 
             <label htmlFor="salesDate" className="salesorder-form-label">
               Sales Date:
+              <span style={{ color: "red" }}>*</span>
               <input
                 type="date"
                 id="salesDate"
@@ -190,6 +204,7 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
 
             <label htmlFor="status" className="salesorder-form-label">
               Status:
+              <span style={{ color: "red" }}>*</span>
               <select
                 id="status"
                 name="Status"
@@ -204,30 +219,59 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
               </select>
             </label>
 
-            <button type="button" onClick={handleAdd} className="add-item">
+            {/* <button type="button" onClick={handleAdd} className="add-item">
               Add Item
-            </button>
+            </button> */}
+
+            {selectedSaleId ? (
+              <button type="button" onClick={handleAdd} className="add-item">
+                Add Item
+              </button>
+            ) : (
+              ""
+            )}
           </form>
 
-          <AddSalesItem
+          {/* <AddSalesItem
             selectedSaleId={selectedSaleId}
             items={salesOrderItems}
             handleDeleteItem={handleDeleteItem}
             availableQTY={selectedItem ? selectedItem.Stock : 0}
-          />
+          /> */}
+
+          {selectedSaleId ? (
+              <AddSalesItem
+              selectedSaleId={selectedSaleId}
+              items={salesOrderItems}
+              handleDeleteItem={handleDeleteItem}
+              availableQTY={selectedItem ? selectedItem.Stock : 0}
+            />
+          ) : (
+            ""
+          )}
 
           <div className="customer-form__button-container">
-            <button
+            {/* <button
               type="submit"
               className="customer-form__button"
               onClick={handleSubmit}
             >
               Save
+            </button> */}
+            
+            <button
+              type="submit"
+              className="customer-form__button"
+              onClick={handleSubmit}
+              // disabled={loading}
+            >
+              {loading ? "Saving..." : "Save"}
             </button>
             <button
               type="button"
               onClick={onClose}
               className="customer-form__button"
+              disabled={loading}
             >
               Cancel
             </button>

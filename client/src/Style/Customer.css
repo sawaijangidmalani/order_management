@@ -4,29 +4,51 @@
   box-sizing: border-box;
 }
 
+body {
+  font-family: Arial, sans-serif;
+  color: #333;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
 .container {
-  width: 1338px;
+  width: 100%;
+  max-width: 1338px;
   padding: 25px;
   background-color: #f8f9fa;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
 }
 
 .StyledDiv {
   display: flex;
   justify-content: space-between;
-  margin: 5px 0px 5px 0px;
-}
-
-h1 {
-  font-size: 30px;
-  /* color: #007bff!important; */
+  margin: 5px 0;
 }
 
 .ButtonContainer {
   display: flex;
   justify-content: space-between;
   width: 100%;
+}
+
+.LeftContainer,
+.RightContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+h1 {
+  font-size: 30px;
+}
+
+h3 {
+  font-size: 20px;
 }
 
 .StyledIn {
@@ -36,31 +58,7 @@ h1 {
   border: 1px lightgray solid;
 }
 
-.StyledButtonSearch {
-  font-size: 16px;
-  font-weight: 800;
-  color: #fffcfc;
-  text-align: center;
-  background-color: #007bff;
-  height: 40px;
-  padding: 0 10px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-left: 10px;
-  width: 120px;
-}
-
-.StyledButtonSearch:hover {
-  background-color: rgb(8, 65, 83);
-}
-
-h3 {
-  font-size: 20px;
-  /* color: #007bff!important; */
-}
-
+.StyledButtonSearch,
 .StyledButtonAdd {
   font-size: 16px;
   font-weight: 800;
@@ -74,9 +72,10 @@ h3 {
   cursor: pointer;
   transition: background-color 0.3s ease;
   margin-left: 10px;
-  width: 155px;
+  width: auto;
 }
 
+.StyledButtonSearch:hover,
 .StyledButtonAdd:hover {
   background-color: rgb(8, 65, 83);
 }
@@ -105,44 +104,29 @@ h3 {
   background-color: #e9ecef;
 }
 
-.shadow {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
 .table-secondary th {
   background-color: #e2e3e5;
   color: #343a40;
-  padding: 8px 0px 9px 15px;
+  padding: 8px 0 9px 15px;
   text-align: left;
   font-weight: bold;
   font-size: 18px;
 }
 
 .table td {
-  padding: 8px 0px 8px 15px;
+  padding: 8px 0 8px 15px;
   vertical-align: middle;
   font-size: 16px;
 }
 
-.btns1 {
-  border: none;
-  outline: none;
-  color: #007bff;
-  background: none;
-  cursor: pointer;
-  padding-right: 20px;
-  transition: transform 0.2s ease;
+.buttons-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  font-size: 2rem;
 }
 
-.btns1:hover {
-  color: rgb(41, 10, 244);
-  transform: scale(1.5);
-}
-.btns1:focus {
-  border: none;
-  outline: none;
-}
-
+.btns1,
 .btns2 {
   border: none;
   outline: none;
@@ -152,10 +136,13 @@ h3 {
   transition: transform 0.2s ease;
 }
 
+.btns1:hover,
 .btns2:hover {
-  color: rgb(244, 10, 10);
+  color: rgb(41, 10, 244);
   transform: scale(1.5);
 }
+
+.btns1:focus,
 .btns2:focus {
   border: none;
   outline: none;
@@ -181,38 +168,7 @@ h3 {
   border: none;
 }
 
-/* Mobile Responsiveness */
-@media (max-width: 768px) {
-  .StyledIn {
-    width: 100%;
-    margin-bottom: 10px;
-  }
-
-  .ButtonContainer {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .StyledButton {
-    width: 100%;
-    margin-top: 10px;
-  }
-}
-
-.StyledDiv {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-.LeftContainer,
-.RightContainer {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.dropdowncontainer{
+.dropdowncontainer {
   position: relative;
 }
 
@@ -230,6 +186,7 @@ h3 {
   text-align: left;
   cursor: pointer;
 }
+
 .dropdownbutton:focus {
   outline: none;
 }
@@ -238,11 +195,12 @@ h3 {
   padding: 10px;
   cursor: pointer;
 }
+
 .option:hover {
   background-color: #f0f0f0;
 }
 
-.dropdownoption{
+.dropdownoption {
   position: absolute;
   width: 140px;
   max-height: 150px;
@@ -253,7 +211,6 @@ h3 {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 1;
 }
-
 
 .item-price-form {
   background-color: #eceeef;
@@ -266,4 +223,78 @@ h3 {
   height: auto;
   position: absolute;
   box-shadow: 0 5px 7px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 768px) {
+  .StyledIn {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .ButtonContainer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .StyledButtonSearch,
+  .StyledButtonAdd {
+    width: auto;
+    margin-top: 10px;
+  }
+
+  .container {
+    padding: 15px;
+  }
+
+  .table td,
+  .table-secondary th {
+    font-size: 14px;
+    padding: 5px;
+  }
+
+  .item-price-form {
+    width: 100%;
+    margin-left: 0;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 500px) {
+  .dropdownbutton {
+    width: 100%;
+    font-size: 14px;
+  }
+
+  .item-price-form {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.spinner {
+  animation: spin 5s linear infinite;
+  font-size: 50px;
+  color: #007bff;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

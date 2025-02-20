@@ -10,7 +10,9 @@ import {
 import { MdDelete } from "react-icons/md";
 import axios from "axios";
 import { Tooltip, Pagination, Modal, Popconfirm } from "antd";
-import "../Style/Manage.css";
+import "../Style/Customer.css";
+import toast from "react-hot-toast";
+import { FaSpinner } from "react-icons/fa";
 
 function ManageSuppliers() {
   const [suppliers, setSuppliers] = useState([]);
@@ -23,6 +25,7 @@ function ManageSuppliers() {
   const [filteredSuppliers, setFilteredSuppliers] = useState([]);
   const [sortField, setSortField] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const value = e.target.value;
@@ -57,7 +60,7 @@ function ManageSuppliers() {
     const fetchSuppliers = async () => {
       try {
         const result = await axios.get(
-          "https://order-management-p53a.onrender.com/supplier/getSupplierData"
+          "http://localhost:8000/supplier/getSupplierData"
         );
 
         setSuppliers(result.data);
@@ -71,20 +74,30 @@ function ManageSuppliers() {
   }, []);
 
   const handleDelete = (email) => {
+    setIsLoading(true);
     axios
-      .delete(`https://order-management-p53a.onrender.com/supplier/deleteSupplier`, {
+      .delete(`http://localhost:8000/supplier/deleteSupplier`, {
         data: { email },
       })
       .then(() => {
-        alert("Supplier deleted successfully");
-        setSuppliers(suppliers.filter((supplier) => supplier.email !== email));
-        setFilteredSuppliers(
-          filteredSuppliers.filter((supplier) => supplier.email !== email)
+        toast.success("Supplier deleted successfully!");
+
+        setSuppliers((prevSuppliers) =>
+          prevSuppliers.filter((supplier) => supplier.email !== email)
+        );
+        setFilteredSuppliers((prevFiltered) =>
+          prevFiltered.filter((supplier) => supplier.email !== email)
         );
         window.location.reload();
+        setTimeout(() => {
+          console.log("Supplier deleted:", email);
+        }, 3000);
+        setIsLoading(false);
       })
       .catch((err) => {
-        console.log(err);
+        console.error("Error deleting supplier:", err);
+        toast.error("Something went wrong while deleting.");
+        setIsLoading(false);
       });
   };
 
@@ -161,6 +174,11 @@ function ManageSuppliers() {
 
   return (
     <>
+      {isLoading && (
+        <div className="overlay">
+          <FaSpinner className="spinner" />
+        </div>
+      )}
       <div className="container">
         <h1>Manage Suppliers</h1>
         <div className="StyledDiv">

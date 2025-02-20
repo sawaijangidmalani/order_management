@@ -1,7 +1,6 @@
-// import { IoMdContact, IoMdHome } from "react-icons/io";
-
 import { FaUserPlus } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import "../src/Style/Navbar.css"
 
 function Navbar() {
   return (

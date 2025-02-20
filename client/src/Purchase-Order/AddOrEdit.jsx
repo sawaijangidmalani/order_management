@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import styled from "styled-components";
 import toast from "react-hot-toast";
+import "../Style/Add.css";
+import { FaSpinner } from "react-icons/fa";
 
 const Modal = styled.div`
   position: fixed;
@@ -26,11 +28,12 @@ const AddOrEdit = ({
   const [purchasePrice, setPurchasePrice] = useState(0);
   const [invoice, setInvoice] = useState("");
   const [date, setDate] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get("https://order-management-p53a.onrender.com/item/getItems");
+        const res = await axios.get("http://localhost:8000/item/getItems");
         setProducts(res.data.data);
       } catch (err) {
         console.error("Error fetching products:", err);
@@ -94,6 +97,8 @@ const AddOrEdit = ({
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    setLoading(true);
+
     const purchaseOrderItem = {
       PurchaseOrderItemID: itemToEdit?.PurchaseOrderItemID || null,
       PurchaseOrderID: selectedPurchaseId,
@@ -109,12 +114,12 @@ const AddOrEdit = ({
       let response;
       if (itemToEdit) {
         response = await axios.put(
-          "https://order-management-p53a.onrender.com/po/editpurchaseorderitems",
+          "http://localhost:8000/po/editpurchaseorderitems",
           purchaseOrderItem
         );
       } else {
         response = await axios.post(
-          "https://order-management-p53a.onrender.com/po/addpurchaseorderitems",
+          "http://localhost:8000/po/addpurchaseorderitems",
           purchaseOrderItem
         );
       }
@@ -123,7 +128,6 @@ const AddOrEdit = ({
         toast.success(
           itemToEdit ? "Item updated successfully!" : "Item added successfully!"
         );
-        
 
         // Reset form
         setSelectedProduct(null);
@@ -136,7 +140,6 @@ const AddOrEdit = ({
         setDate("");
         onClose();
         // window.location.reload();
-
       } else {
         toast.error(
           response.data?.message || "Something went wrong, please try again."
@@ -149,10 +152,16 @@ const AddOrEdit = ({
         error.response?.data?.message || "An error occurred: " + error.message
       );
     }
+    setLoading(false);
   };
 
   return (
     <Modal>
+      {loading && (
+        <div className="overlay">
+          <FaSpinner className="spinner" />
+        </div>
+      )}
       <div className="body-container">
         <form onSubmit={handleSubmit} className="customer-form">
           <h3 className="form-heading">
@@ -161,6 +170,7 @@ const AddOrEdit = ({
 
           <label htmlFor="item" className="customer-form__label">
             Item:
+            <span style={{ color: "red" }}>*</span>
             <select
               id="item"
               value={selectedProduct?.Name || ""}
@@ -190,6 +200,7 @@ const AddOrEdit = ({
 
           <label htmlFor="allocatedQty" className="customer-form__label">
             Allocated Qty:
+            <span style={{ color: "red" }}>*</span>
             <input
               id="allocatedQty"
               type="number"
@@ -213,6 +224,7 @@ const AddOrEdit = ({
 
           <label htmlFor="unitCost" className="customer-form__label">
             Unit Cost:
+            <span style={{ color: "red" }}>*</span>
             <input
               id="unitCost"
               type="number"
@@ -231,12 +243,12 @@ const AddOrEdit = ({
               value={purchasePrice || 0}
               readOnly
               className="customer-form__input"
-              required
             />
           </label>
 
           <label htmlFor="invoice" className="customer-form__label">
             Invoice Number:
+            <span style={{ color: "red" }}>*</span>
             <input
               type="text"
               id="invoice"
@@ -249,6 +261,7 @@ const AddOrEdit = ({
 
           <label htmlFor="date" className="customer-form__label">
             Invoice Date:
+            <span style={{ color: "red" }}>*</span>
             <input
               type="date"
               id="date"
@@ -260,8 +273,15 @@ const AddOrEdit = ({
           </label>
 
           <div className="customer-form__button-container">
-            <button type="submit" className="customer-form__button">
+            {/* <button type="submit" className="customer-form__button">
               Save
+            </button> */}
+            <button
+              type="submit"
+              className="customer-form__button"
+              disabled={loading}
+            >
+              {loading ? "Saving..." : "Save"}
             </button>
             <button
               type="button"

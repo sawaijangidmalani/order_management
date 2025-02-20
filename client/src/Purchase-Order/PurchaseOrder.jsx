@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import AddPurchaseItem from "./AddPurchaseItem";
 import AddOrEdit from "./AddOrEdit";
 import axios from "axios";
 import "../Style/Add.css";
 import "../Style/salesorder.css";
 import toast from "react-hot-toast";
+import { FaSpinner } from "react-icons/fa";
 
 const PurchaseOrder = ({
   onCloses,
@@ -26,12 +26,13 @@ const PurchaseOrder = ({
   const [salesData, setSalesData] = useState([]);
   const [purchaseOrderItems, setPurchaseOrderItems] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchSalesData = async () => {
       try {
         const response = await axios.get(
-          "https://order-management-p53a.onrender.com/customerpo/getCustomerPo"
+          "http://localhost:8000/customerpo/getCustomerPo"
         );
         const updatedData = response.data.map((item) => ({
           CustomerSalesOrderID: item.CustomerSalesOrderID,
@@ -50,7 +51,7 @@ const PurchaseOrder = ({
     const fetchCustomerData = async () => {
       try {
         const response = await axios.get(
-          "https://order-management-p53a.onrender.com/customer/getCustomerData"
+          "http://localhost:8000/customer/getCustomerData"
         );
         setCustomerData(response.data);
       } catch (error) {
@@ -62,6 +63,7 @@ const PurchaseOrder = ({
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setLoading(true);
 
     const data = {
       PurchaseOrderID: editData ? editData.PurchaseOrderID : "",
@@ -80,15 +82,16 @@ const PurchaseOrder = ({
 
       if (editData && editData.PurchaseOrderID) {
         response = await axios.put(
-          `https://order-management-p53a.onrender.com/po/updatepo/${editData.PurchaseOrderID}`,
+          `http://localhost:8000/po/updatepo/${editData.PurchaseOrderID}`,
           data
         );
 
         if (response.status === 200 || response.status === 201) {
           toast.success("Purchase order updated successfully");
+          setLoading(false);
         }
       } else {
-        response = await axios.post("https://order-management-p53a.onrender.com/po/insertpo", data);
+        response = await axios.post("http://localhost:8000/po/insertpo", data);
 
         if (response.status === 200 || response.status === 201) {
           toast.success("Purchase order Saved successfully");
@@ -100,6 +103,7 @@ const PurchaseOrder = ({
     } catch (error) {
       console.error("Error inserting/updating purchase order:", error);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -151,6 +155,11 @@ const PurchaseOrder = ({
 
   return (
     <div>
+      {loading && (
+        <div className="overlay">
+          <FaSpinner className="spinner" />
+        </div>
+      )}
       {addClick ? (
         <AddOrEdit
           onClose={handleCancel}
@@ -167,6 +176,7 @@ const PurchaseOrder = ({
 
             <label htmlFor="customer">
               Customer:
+              <span style={{ color: "red" }}>*</span>
               <select
                 id="customer"
                 name="CustomerID"
@@ -186,6 +196,7 @@ const PurchaseOrder = ({
 
             <label htmlFor="date">
               Date:
+              <span style={{ color: "red" }}>*</span>
               <input
                 type="date"
                 id="date"
@@ -199,12 +210,14 @@ const PurchaseOrder = ({
 
             <label htmlFor="customerpo">
               Customer PO:
+              <span style={{ color: "red" }}>*</span>
               <select
                 id="customerPO"
                 name="CustomerPO"
                 value={customerPO}
                 onChange={handleInputChange}
                 className="customer-salesorder_input"
+                required
               >
                 <option value="">Select CPO</option>
                 {salesData.map((item) => (
@@ -220,6 +233,7 @@ const PurchaseOrder = ({
 
             <label htmlFor="purchaseOrderNumber">
               Purchase Order Number:
+              <span style={{ color: "red" }}>*</span>
               <input
                 id="purchaseOrderNumber"
                 name="PurchaseOrderNumber"
@@ -232,12 +246,14 @@ const PurchaseOrder = ({
 
             <label htmlFor="status">
               Status:
+              <span style={{ color: "red" }}>*</span>
               <select
                 id="status"
                 name="Status"
                 value={status}
                 onChange={handleInputChange}
                 className="status-salesorder_input"
+                required
               >
                 <option>Select Status</option>
                 <option value={1}>Draft</option>
@@ -245,34 +261,68 @@ const PurchaseOrder = ({
               </select>
             </label>
 
-            <button
+            {/* <button
               type="button"
               onClick={handleAddItemClick}
               className="add-item"
             >
               Add Item
-            </button>
+            </button> */}
+
+            {selectedPurchaseId ? (
+              <button
+                type="button"
+                onClick={handleAddItemClick}
+                className="add-item"
+              >
+                Add Item
+              </button>
+            ) : (
+              ""
+            )}
           </form>
 
-          <AddPurchaseItem
+          {/* <AddPurchaseItem
             selectedPurchaseId={selectedPurchaseId}
             items={purchaseOrderItems}
             handleDeleteItem={handleDeleteItem}
             availableQTY={selectedItem ? selectedItem.Stock : 0}
-          />
+          /> */}
+
+          {selectedPurchaseId ? (
+            <AddPurchaseItem
+              selectedPurchaseId={selectedPurchaseId}
+              items={purchaseOrderItems}
+              handleDeleteItem={handleDeleteItem}
+              availableQTY={selectedItem ? selectedItem.Stock : 0}
+            />
+          ) : (
+            ""
+          )}
+
           <div className="customer-form__button-container">
-            <button
+            {/* <button
               type="submit"
               className="customer-form__button"
               onClick={handleSubmit}
             >
               Save
+            </button> */}
+
+            <button
+              type="submit"
+              className="customer-form__button"
+              onClick={handleSubmit}
+              disabled={loading}
+            >
+              {loading ? "Saving..." : "Save"}
             </button>
 
             <button
               type="button"
               onClick={onCloses}
               className="customer-form__button"
+              disabled={loading}
             >
               Cancel
             </button>
