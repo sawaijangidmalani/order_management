@@ -13,13 +13,13 @@ dotenv.config();
 const app = express();
 
 
-app.use(cors({ origin: '*' }));
+// app.use(cors({ origin: '*' }));
 
-// app.use(cors({
-//   origin: 'https://order-management-x5fd.onrender.com', 
-//   methods: ['GET', 'POST', 'PUT', 'DELETE'], 
-//   credentials: true, 
-// }));
+app.use(cors({
+  origin: 'https://order-management-x5fd.onrender.com', 
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], 
+  credentials: true, 
+}));
 
 app.use(express.json());
 
