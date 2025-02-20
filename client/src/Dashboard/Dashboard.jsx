@@ -73,7 +73,7 @@ function Dashboard() {
   useEffect(() => {
     const fetchPurchaseOrders = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/po/getpo");
+        const response = await axios.get("https://order-management-p53a.onrender.com/po/getpo");
 
         const purchaseOrderNumbers = response.data.map(
           (purchase) => purchase.PurchaseOrderNumber
@@ -92,7 +92,7 @@ function Dashboard() {
     const fetchCustomerPOs = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8000/customerpo/getCustomerPo"
+          "https://order-management-p53a.onrender.com/customerpo/getCustomerPo"
         );
         const salesOrderNumbers = response.data.map(
           (item) => item.SalesOrderNumber
@@ -111,7 +111,7 @@ function Dashboard() {
     const fetchCustomers = async () => {
       try {
         const result = await axios.get(
-          "http://localhost:8000/customer/getCustomerData"
+          "https://order-management-p53a.onrender.com/customer/getCustomerData"
         );
         setCustomers(result.data);
       } catch (err) {
@@ -125,7 +125,7 @@ function Dashboard() {
   const fetchCustomerPOs = async (customerID) => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/customerpo/getCustomerPOs/${customerID}`
+        `https://order-management-p53a.onrender.com/customerpo/getCustomerPOs/${customerID}`
       );
       if (response.data.success) {
         setCustomerPOs(response.data.data);
@@ -142,19 +142,19 @@ function Dashboard() {
   // Fetch Data for Tables
   useEffect(() => {
     axios
-      .get("http://localhost:8000/po/getpurchaseorderitems")
+      .get("https://order-management-p53a.onrender.com/po/getpurchaseorderitems")
       .then((res) => setPurchaseItems(res.data.data || []))
       .catch((err) =>
         console.error("Error fetching purchase order items:", err)
       );
 
     axios
-      .get("http://localhost:8000/customerpo/getcustomersalesorderitems")
+      .get("https://order-management-p53a.onrender.com/customerpo/getcustomersalesorderitems")
       .then((res) => setSalesItems(res.data.data || []))
       .catch((err) => console.error("Error fetching sales order items:", err));
 
     // axios
-    //   .get("http://localhost:8000/customerPo/getRemainingPurchaseOrder")
+    //   .get("https://order-management-p53a.onrender.com/customerPo/getRemainingPurchaseOrder")
     //   .then((res) => setRems(res.data.data || []))
     //   .catch((err) =>
     //     console.error("Error fetching remaining purchase orders:", err)

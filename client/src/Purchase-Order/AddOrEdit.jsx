@@ -33,7 +33,7 @@ const AddOrEdit = ({
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/item/getItems");
+        const res = await axios.get("https://order-management-p53a.onrender.com/item/getItems");
         setProducts(res.data.data);
       } catch (err) {
         console.error("Error fetching products:", err);
@@ -114,12 +114,12 @@ const AddOrEdit = ({
       let response;
       if (itemToEdit) {
         response = await axios.put(
-          "http://localhost:8000/po/editpurchaseorderitems",
+          "https://order-management-p53a.onrender.com/po/editpurchaseorderitems",
           purchaseOrderItem
         );
       } else {
         response = await axios.post(
-          "http://localhost:8000/po/addpurchaseorderitems",
+          "https://order-management-p53a.onrender.com/po/addpurchaseorderitems",
           purchaseOrderItem
         );
       }
