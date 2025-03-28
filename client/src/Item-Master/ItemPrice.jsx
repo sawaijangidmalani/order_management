@@ -73,7 +73,7 @@ function ItemPrice({
     setLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:8000/itemPrice/getItemPrices/${itemId}`
+        `https://order-management-pqn2.onrender.com/itemPrice/getItemPrices/${itemId}`
       );
       setItemPriceData(response.data);
       if (onDataUpdate) onDataUpdate(response.data);
@@ -110,13 +110,13 @@ function ItemPrice({
     try {
       if (isEditing && editItemId) {
         await axios.put(
-          `http://localhost:8000/itemPrice/updateItemPrice/${editItemId}`,
+          `https://order-management-pqn2.onrender.com/itemPrice/updateItemPrice/${editItemId}`,
           payload
         );
         toast.success("Item price updated successfully!");
       } else {
         await axios.post(
-          "http://localhost:8000/itemPrice/addItemPrice",
+          "https://order-management-pqn2.onrender.com/itemPrice/addItemPrice",
           payload
         );
         toast.success("Item price added successfully!");
@@ -146,7 +146,7 @@ function ItemPrice({
     setLoading(true);
     try {
       await axios.delete(
-        `http://localhost:8000/itemPrice/deleteItemPrice/${id}`
+        `https://order-management-pqn2.onrender.com/itemPrice/deleteItemPrice/${id}`
       );
       await fetchItemPrices(selectedItemId);
       toast.success("Item price deleted successfully!");

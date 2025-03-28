@@ -49,7 +49,7 @@ function ManageCPO() {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8000/customerpo/getCustomerPo"
+          "https://order-management-pqn2.onrender.com/customerpo/getCustomerPo"
         );
 
         const updatedData = response.data.map((item) => ({
@@ -120,7 +120,7 @@ function ManageCPO() {
 
     try {
       const response = await fetch(
-        "http://localhost:8000/customerpo/deleteCustomerPo",
+        "https://order-management-pqn2.onrender.com/customerpo/deleteCustomerPo",
         {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
