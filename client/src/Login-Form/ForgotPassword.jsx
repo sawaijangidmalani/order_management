@@ -26,7 +26,7 @@ function ForgotPassword() {
     setLoading(true);
     try {
       const { data } = await axios.post(
-        "https://order-management-mnty.onrender.com/auth/forgotPassword",
+        "http://localhost:8000/auth/forgotPassword",
         { email }
       );
       toast.success(data.message || "OTP sent successfully");
@@ -47,7 +47,7 @@ function ForgotPassword() {
     setLoading(true);
     try {
       const { data } = await axios.post(
-        "https://order-management-mnty.onrender.com/auth/verifyOTP",
+        "http://localhost:8000/auth/verifyOTP",
         { email, otp }
       );
       toast.success(data.message || "OTP verified successfully");
@@ -76,7 +76,7 @@ function ForgotPassword() {
     setLoading(true);
     try {
       const { data } = await axios.post(
-        "https://order-management-mnty.onrender.com/auth/resetPassword",
+        "http://localhost:8000/auth/resetPassword",
         { email, newPassword }
       );
       toast.success(data.message || "Password reset successfully!");
