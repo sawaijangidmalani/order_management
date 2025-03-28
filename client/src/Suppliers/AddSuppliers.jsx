@@ -76,8 +76,8 @@ function AddSuppliers({ closeModal, editingSuppliers }) {
     setLoading(true);
 
     const apiUrl = editingSuppliers
-      ? "https://order-management-b0de.onrender.com/supplier/updateSupplier"
-      : "https://order-management-b0de.onrender.com/supplier/add_supplier";
+      ? "https://order-management-mnty.onrender.com/supplier/updateSupplier"
+      : "https://order-management-mnty.onrender.com/supplier/add_supplier";
 
     axios
       .post(apiUrl, formData)

@@ -86,7 +86,7 @@ function Signin() {
       setLoading(true);
       try {
         const { data } = await axios.post(
-          "https://order-management-b0de.onrender.com/auth/signup",
+          "https://order-management-mnty.onrender.com/auth/signup",
           sign
         );
         if (data?.success) {

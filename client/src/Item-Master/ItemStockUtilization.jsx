@@ -70,7 +70,7 @@ function ItemStockUtilization({
         setStockData(enrichedStockData);
       } else {
         const response = await axios.get(
-          `https://order-management-b0de.onrender.com/itemPrice/getItemPrices/${itemId}`
+          `https://order-management-mnty.onrender.com/itemPrice/getItemPrices/${itemId}`
         );
         const enrichedStockData = response.data.map((priceItem) => ({
           ...priceItem,
@@ -91,10 +91,10 @@ function ItemStockUtilization({
       setIsLoading(true);
 
       const utilResponse = await axios.get(
-        `https://order-management-b0de.onrender.com/po/getpurchaseorderitems?itemId=${itemId}`
+        `https://order-management-mnty.onrender.com/po/getpurchaseorderitems?itemId=${itemId}`
       );
 
-      const poResponse = await axios.get("https://order-management-b0de.onrender.com/po/getpo");
+      const poResponse = await axios.get("https://order-management-mnty.onrender.com/po/getpo");
       const purchaseOrders = poResponse.data;
 
       const enrichedUtilData = utilResponse.data.data

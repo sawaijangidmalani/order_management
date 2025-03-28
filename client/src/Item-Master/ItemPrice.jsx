@@ -73,7 +73,7 @@ function ItemPrice({
     setLoading(true);
     try {
       const response = await axios.get(
-        `https://order-management-b0de.onrender.com/itemPrice/getItemPrices/${itemId}`
+        `https://order-management-mnty.onrender.com/itemPrice/getItemPrices/${itemId}`
       );
       setItemPriceData(response.data);
       if (onDataUpdate) onDataUpdate(response.data);
@@ -110,13 +110,13 @@ function ItemPrice({
     try {
       if (isEditing && editItemId) {
         await axios.put(
-          `https://order-management-b0de.onrender.com/itemPrice/updateItemPrice/${editItemId}`,
+          `https://order-management-mnty.onrender.com/itemPrice/updateItemPrice/${editItemId}`,
           payload
         );
         toast.success("Item price updated successfully!");
       } else {
         await axios.post(
-          "https://order-management-b0de.onrender.com/itemPrice/addItemPrice",
+          "https://order-management-mnty.onrender.com/itemPrice/addItemPrice",
           payload
         );
         toast.success("Item price added successfully!");
@@ -146,7 +146,7 @@ function ItemPrice({
     setLoading(true);
     try {
       await axios.delete(
-        `https://order-management-b0de.onrender.com/itemPrice/deleteItemPrice/${id}`
+        `https://order-management-mnty.onrender.com/itemPrice/deleteItemPrice/${id}`
       );
       await fetchItemPrices(selectedItemId);
       toast.success("Item price deleted successfully!");

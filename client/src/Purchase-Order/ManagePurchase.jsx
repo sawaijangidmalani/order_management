@@ -51,7 +51,7 @@ function ManagePurchase() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get("https://order-management-b0de.onrender.com/po/getpo");
+        const response = await axios.get("https://order-management-mnty.onrender.com/po/getpo");
         const updatedData = response.data.map((purchase) => ({
           ...purchase,
           CustomerName: purchase.CustomerName,
@@ -146,7 +146,7 @@ function ManagePurchase() {
 
     try {
       const response = await fetch(
-        "https://order-management-b0de.onrender.com/po/deletePurchaseOrder",
+        "https://order-management-mnty.onrender.com/po/deletePurchaseOrder",
         {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },

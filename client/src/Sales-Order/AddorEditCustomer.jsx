@@ -32,7 +32,7 @@ const AddorEditCustomer = ({
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get("https://order-management-b0de.onrender.com/item/getItems");
+        const res = await axios.get("https://order-management-mnty.onrender.com/item/getItems");
         setProducts(res.data.data);
       } catch (err) {
         console.error("Error fetching products:", err);
@@ -118,12 +118,12 @@ const AddorEditCustomer = ({
       let response;
       if (itemToEdit) {
         response = await axios.put(
-          "https://order-management-b0de.onrender.com/customerpo/editsalesorderitem",
+          "https://order-management-mnty.onrender.com/customerpo/editsalesorderitem",
           salesOrderItem
         );
       } else {
         response = await axios.post(
-          "https://order-management-b0de.onrender.com/customerpo/addsalesorderitems",
+          "https://order-management-mnty.onrender.com/customerpo/addsalesorderitems",
           salesOrderItem
         );
       }

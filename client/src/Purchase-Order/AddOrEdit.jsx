@@ -36,7 +36,7 @@ const AddOrEdit = ({
     const fetchProducts = async () => {
       try {
         const res = await axios.get(
-          "https://order-management-b0de.onrender.com/customerpo/getcustomersalesorderitems"
+          "https://order-management-mnty.onrender.com/customerpo/getcustomersalesorderitems"
         );
         setProducts(res.data.data);
         console.log("CPO Item:", res.data.data);
@@ -50,7 +50,7 @@ const AddOrEdit = ({
   useEffect(() => {
     const fetchPO = async () => {
       try {
-        const res = await axios.get("https://order-management-b0de.onrender.com/po/getpo");
+        const res = await axios.get("https://order-management-mnty.onrender.com/po/getpo");
         if (res.data && Array.isArray(res.data)) {
           setPurchaseOrders(res.data);
           const matchedOrder = res.data.find(order => order.PurchaseOrderID === selectedPurchaseId);
@@ -126,12 +126,12 @@ const AddOrEdit = ({
       let response;
       if (itemToEdit) {
         response = await axios.put(
-          "https://order-management-b0de.onrender.com/po/editpurchaseorderitems",
+          "https://order-management-mnty.onrender.com/po/editpurchaseorderitems",
           purchaseOrderItem
         );
       } else {
         response = await axios.post(
-          "https://order-management-b0de.onrender.com/po/addpurchaseorderitems",
+          "https://order-management-mnty.onrender.com/po/addpurchaseorderitems",
           purchaseOrderItem
         );
       }

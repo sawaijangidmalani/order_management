@@ -68,7 +68,7 @@ function Home() {
       setLoading(true);
       try {
         const { data } = await axios.post(
-          "https://order-management-b0de.onrender.com/auth/login",
+          "https://order-management-mnty.onrender.com/auth/login",
           credentials
         );
         if (data?.success) {
@@ -87,7 +87,7 @@ function Home() {
         }
       } catch (error) {
         toast.error(
-          error.response?.data?.message || "An error occurred while logging in"
+          error.response?.data?.message || "Login error occurred while logging in"
         );
       } finally {
         setLoading(false);

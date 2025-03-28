@@ -20,7 +20,7 @@ function AddSalesItem({ selectedSaleId }) {
   const fetchItemsData = async () => {
     try {
       const res = await axios.get(
-        "https://order-management-b0de.onrender.com/customerpo/getcustomersalesorderitems"
+        "https://order-management-mnty.onrender.com/customerpo/getcustomersalesorderitems"
       );
       if (res.data && res.data.data) {
         const filteredItems = res.data.data.filter(
@@ -55,7 +55,7 @@ function AddSalesItem({ selectedSaleId }) {
   const handleDelete = async (CustomerSalesOrderItemID) => {
     try {
       await axios.delete(
-        `https://order-management-b0de.onrender.com/customerpo/deleteItem/${CustomerSalesOrderItemID}`
+        `https://order-management-mnty.onrender.com/customerpo/deleteItem/${CustomerSalesOrderItemID}`
       );
       toast.success("Sales item deleted successfully!");
       fetchItemsData();

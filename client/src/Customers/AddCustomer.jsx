@@ -74,8 +74,8 @@ function AddCustomer({ closeModal, editingCustomer }) {
     setLoading(true);
 
     const apiUrl = editingCustomer
-      ? "https://order-management-b0de.onrender.com/customer/updateCustomer"
-      : "https://order-management-b0de.onrender.com/customer/add_customer";
+      ? "https://order-management-mnty.onrender.com/customer/updateCustomer"
+      : "https://order-management-mnty.onrender.com/customer/add_customer";
 
     try {
       const response = await axios.post(apiUrl, formData);
