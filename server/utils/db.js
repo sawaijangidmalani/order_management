@@ -26,10 +26,12 @@
 // export default pool;
 
 
-import { Pool } from "pg";
+import pkg from "pg";
 import dotenv from "dotenv";
 
 dotenv.config();
+
+const { Pool } = pkg;
 
 const pool = new Pool({
   host: process.env.Hostname,
@@ -48,5 +50,6 @@ pool
   .catch((err) => console.error("Error connecting to database:", err));
 
 export default pool;
+
 
 
