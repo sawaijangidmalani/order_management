@@ -76,8 +76,8 @@ function AddSuppliers({ closeModal, editingSuppliers }) {
     setLoading(true);
 
     const apiUrl = editingSuppliers
-      ? "http://localhost:8000/supplier/updateSupplier"
-      : "http://localhost:8000/supplier/add_supplier";
+      ? "https://order-management-p53a.onrender.com/supplier/updateSupplier"
+      : "https://order-management-p53a.onrender.com/supplier/add_supplier";
 
     axios
       .post(apiUrl, formData)

@@ -41,7 +41,7 @@ function ManageItem() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    axios.get("http://localhost:8000/item/getItems").then((data) => {
+    axios.get("https://order-management-p53a.onrender.com/item/getItems").then((data) => {
       if (!data?.data?.error) {
         setItems(data?.data?.data);
         setFilteredItems(data?.data?.data);
@@ -155,7 +155,7 @@ function ManageItem() {
   const handleDelete = (ItemID) => {
     setIsLoading(true);
     axios
-      .delete("http://localhost:8000/item/deleteItems", {
+      .delete("https://order-management-p53a.onrender.com/item/deleteItems", {
         data: { ItemID: ItemID },
       })
       .then(() => {
@@ -205,7 +205,7 @@ function ManageItem() {
     try {
       const itemStockRequests = itemsToFetch.map((item) =>
         axios.get(
-          `http://localhost:8000/itemPrice/getItemPrices/${item.ItemID}`
+          `https://order-management-p53a.onrender.com/itemPrice/getItemPrices/${item.ItemID}`
         )
       );
       const responses = await Promise.all(itemStockRequests);
