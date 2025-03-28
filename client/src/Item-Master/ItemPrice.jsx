@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styled, { keyframes } from "styled-components";
 import axios from "axios";
-import "../Style/Customer.css";
 import { Tooltip, Popconfirm, Pagination } from "antd";
 import { MdDelete } from "react-icons/md";
 import { BiSolidEdit } from "react-icons/bi";
@@ -27,7 +26,7 @@ const Overlay = styled.div`
 `;
 
 const Spinner = styled(FaSpinner)`
-  animation: ${spin} 5s linear infinite;
+  animation: ${spin} 1s linear infinite;
   font-size: 50px;
   color: #007bff;
 `;
@@ -40,14 +39,19 @@ const Modal = styled.div`
   border-radius: 20px;
 `;
 
-function ItemPrice({ handleClose, selectedItemName, selectedItemId }) {
+function ItemPrice({
+  handleClose,
+  selectedItemName,
+  selectedItemId,
+  onDataUpdate,
+}) {
   const [itemPriceData, setItemPriceData] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editItemId, setEditItemId] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const initialFormState = {
-    ItemStockID: "Null",
+    ItemStockID: null,
     ItemID: selectedItemId,
     PurchasePrice: "",
     ProviderID: "1",
@@ -57,7 +61,6 @@ function ItemPrice({ handleClose, selectedItemName, selectedItemId }) {
   };
 
   const [formData, setFormData] = useState({ ...initialFormState });
-
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(4);
   const [sortOrder, setSortOrder] = useState({
@@ -67,58 +70,67 @@ function ItemPrice({ handleClose, selectedItemName, selectedItemId }) {
   });
 
   const fetchItemPrices = async (itemId) => {
+    setLoading(true);
     try {
       const response = await axios.get(
-        `https://order-management-p53a.onrender.com/itemPrice/getItemPrices/${itemId}`
+        `http://localhost:8000/itemPrice/getItemPrices/${itemId}`
       );
       setItemPriceData(response.data);
+      if (onDataUpdate) onDataUpdate(response.data);
     } catch (error) {
       console.error("Error fetching item prices:", error);
+      toast.error("Failed to fetch item prices");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (selectedItemId) {
-      fetchItemPrices(selectedItemId);
-    }
+    if (selectedItemId) fetchItemPrices(selectedItemId);
   }, [selectedItemId]);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
-
-    // Ensure proper date format for type="date"
-    const updatedValue =
-      name === "PurchaseDate" && value
-        ? new Date(value).toISOString().split("T")[0]
-        : value;
-
-    setFormData((prev) => ({ ...prev, [name]: updatedValue }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "PurchaseDate" ? value : value,
+    }));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
+
+    const payload = {
+      ...formData,
+      ItemID: selectedItemId,
+      RemainingQty: formData.RemainingQty || formData.Qty,
+    };
+
     try {
-      if (isEditing) {
+      if (isEditing && editItemId) {
         await axios.put(
-          `https://order-management-p53a.onrender.com/itemPrice/updateItemPrice/${editItemId}`,
-          formData
+          `http://localhost:8000/itemPrice/updateItemPrice/${editItemId}`,
+          payload
         );
         toast.success("Item price updated successfully!");
       } else {
         await axios.post(
-          "https://order-management-p53a.onrender.com/itemPrice/addItemPrice",
-          formData
+          "http://localhost:8000/itemPrice/addItemPrice",
+          payload
         );
         toast.success("Item price added successfully!");
       }
-      fetchItemPrices(selectedItemId);
+      await fetchItemPrices(selectedItemId);
       resetForm();
     } catch (error) {
       console.error("Error submitting form:", error);
-      toast.error("Failed to add/update item price: " + error.message);
+      toast.error(
+        `Failed to ${isEditing ? "update" : "add"} item price: ${error.message}`
+      );
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleEditItem = (item) => {
@@ -134,21 +146,20 @@ function ItemPrice({ handleClose, selectedItemName, selectedItemId }) {
     setLoading(true);
     try {
       await axios.delete(
-        `https://order-management-p53a.onrender.com/itemPrice/deleteItemPrice/${id}`
+        `http://localhost:8000/itemPrice/deleteItemPrice/${id}`
       );
-      setItemPriceData((prev) =>
-        prev.filter((item) => item.ItemStockID !== id)
-      );
+      await fetchItemPrices(selectedItemId);
       toast.success("Item price deleted successfully!");
     } catch (error) {
       console.error("Error deleting item:", error);
       toast.error("Failed to delete item price: " + error.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const resetForm = () => {
-    setFormData(initialFormState);
+    setFormData({ ...initialFormState });
     setIsEditing(false);
     setEditItemId(null);
   };
@@ -156,11 +167,9 @@ function ItemPrice({ handleClose, selectedItemName, selectedItemId }) {
   const handleCancel = () => {
     handleClose();
     resetForm();
-    window.location.reload();
   };
 
-  // Sorting function
-  const sortedData = itemPriceData.sort((a, b) => {
+  const sortedData = [...itemPriceData].sort((a, b) => {
     const priceComparison =
       sortOrder.PurchasePrice === "asc"
         ? a.PurchasePrice - b.PurchasePrice
@@ -176,12 +185,10 @@ function ItemPrice({ handleClose, selectedItemName, selectedItemId }) {
     return sortOrder.PurchaseDate === "asc" ? dateA - dateB : dateB - dateA;
   });
 
-  // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = sortedData.slice(indexOfFirstItem, indexOfLastItem);
 
-  // Calculate total quantity
   const totalQty = itemPriceData.reduce(
     (total, item) => total + (parseInt(item.Qty) || 0),
     0
@@ -199,53 +206,42 @@ function ItemPrice({ handleClose, selectedItemName, selectedItemId }) {
               <h3 className="form-heading">
                 {isEditing ? "Edit Item Price" : "Add Item Price"}
               </h3>
-
               <label>
                 Item Name: <strong>{selectedItemName}</strong>
               </label>
-
               <label>
                 Purchase Price:
                 <span style={{ color: "red" }}>*</span>
                 <input
-                  type="text"
+                  type="number"
                   name="PurchasePrice"
                   value={formData.PurchasePrice}
                   onChange={handleInputChange}
                   required
                 />
               </label>
-
               <label>
                 Purchase Date:
                 <span style={{ color: "red" }}>*</span>
                 <input
                   type="date"
                   name="PurchaseDate"
-                  value={
-                    formData.PurchaseDate
-                      ? new Date(formData.PurchaseDate)
-                          .toISOString()
-                          .split("T")[0]
-                      : ""
-                  }
+                  value={formData.PurchaseDate}
                   onChange={handleInputChange}
                   required
                 />
               </label>
-
               <label>
                 Quantity:
                 <span style={{ color: "red" }}>*</span>
                 <input
-                  type="text"
+                  type="number"
                   name="Qty"
                   value={formData.Qty}
                   onChange={handleInputChange}
                   required
                 />
               </label>
-
               <div className="table-responsive">
                 <h2>Item Price List: {selectedItemName}</h2>
                 <table className="table table-bordered table-striped table-hover shadow">
@@ -300,45 +296,24 @@ function ItemPrice({ handleClose, selectedItemName, selectedItemId }) {
                         </td>
                         <td>
                           <div className="buttons-group">
-                            <Tooltip
-                              title="Edit"
-                              overlayInnerStyle={{
-                                backgroundColor: "rgb(41, 10, 244)",
-                                color: "white",
-                                borderRadius: "5px",
-                              }}
-                            >
+                            <Tooltip title="Edit">
                               <button
                                 className="btns1"
+                                type="button"
                                 onClick={() => handleEditItem(item)}
                               >
                                 <BiSolidEdit />
                               </button>
                             </Tooltip>
-                            <Tooltip
-                              title="Delete"
-                              overlayInnerStyle={{
-                                backgroundColor: "rgb(244, 10, 10)",
-                                color: "white",
-                                borderRadius: "5px",
-                              }}
-                            >
+                            <Tooltip title="Delete">
                               <Popconfirm
                                 placement="topRight"
-                                description="Are you sure to delete this item Price?"
+                                description="Are you sure to delete this item price?"
                                 onConfirm={() => handleDelete(item.ItemStockID)}
                                 okText="Delete"
                               >
-                                <button
-                                  className="btns1"
-                                  onClick={() => handleDelete(item.ItemStockID)}
-                                  disabled={loading}
-                                >
-                                  {loading ? (
-                                    <FaSpinner className="spinner-icon" />
-                                  ) : (
-                                    <MdDelete />
-                                  )}
+                                <button className="btns1" disabled={loading}>
+                                  {loading ? <FaSpinner /> : <MdDelete />}
                                 </button>
                               </Popconfirm>
                             </Tooltip>
@@ -349,7 +324,6 @@ function ItemPrice({ handleClose, selectedItemName, selectedItemId }) {
                   </tbody>
                 </table>
               </div>
-
               <Pagination
                 current={currentPage}
                 pageSize={itemsPerPage}
@@ -357,29 +331,20 @@ function ItemPrice({ handleClose, selectedItemName, selectedItemId }) {
                 onChange={(page) => setCurrentPage(page)}
                 showSizeChanger={false}
               />
-
               <div>
                 <p>
                   <b>Total Qty:</b>{" "}
                   <span style={{ paddingLeft: "10px" }}>{totalQty}</span>
                 </p>
               </div>
-
               <div className="customer-form__button-container">
                 <button
                   type="submit"
                   className="customer-form__button"
                   disabled={loading}
                 >
-                  {loading ? (
-                    <FaSpinner className="spinner-icon" />
-                  ) : isEditing ? (
-                    "Update"
-                  ) : (
-                    "Save"
-                  )}
+                  {loading ? <FaSpinner /> : isEditing ? "Update" : "Save"}
                 </button>
-
                 <button
                   type="button"
                   onClick={handleCancel}

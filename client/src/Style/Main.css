@@ -36,23 +36,6 @@
   }
 }
 
-.sidebar {
-  background-color: #124e88;
-  padding: 3.2rem 3rem;
-  border-right: 1px solid lightgray;
-  grid-row: 1 / -1;
-  display: flex;
-  flex-direction: column;
-  gap: 3.2rem;
-  text-decoration: none;
-}
-
-@media (max-width: 768px) {
-  .sidebar {
-    border-right: none;
-    padding: 2rem;
-  }
-}
 
 .nav-list {
   display: flex;

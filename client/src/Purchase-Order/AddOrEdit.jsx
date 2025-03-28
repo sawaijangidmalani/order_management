@@ -20,6 +20,7 @@ const AddOrEdit = ({
   availableQTY,
 }) => {
   const [products, setProducts] = useState([]);
+  const [purchaseOrders, setPurchaseOrders] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [availableQty, setAvailableQty] = useState(availableQTY || 0);
   const [allocatedQty, setAllocatedQty] = useState(0);
@@ -29,12 +30,16 @@ const AddOrEdit = ({
   const [invoice, setInvoice] = useState("");
   const [date, setDate] = useState("");
   const [loading, setLoading] = useState(false);
+  const [matchingCPOItems, setMatchingCPOItems] = useState([]); 
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get("https://order-management-p53a.onrender.com/item/getItems");
+        const res = await axios.get(
+          "http://localhost:8000/customerpo/getcustomersalesorderitems"
+        );
         setProducts(res.data.data);
+        console.log("CPO Item:", res.data.data);
       } catch (err) {
         console.error("Error fetching products:", err);
       }
@@ -43,37 +48,45 @@ const AddOrEdit = ({
   }, []);
 
   useEffect(() => {
-    if (itemToEdit && products.length > 0) {
-      const selectedItem = products.find((p) => p.ItemID === itemToEdit.ItemID);
-      if (selectedItem) {
-        setSelectedProduct(selectedItem);
-        setAvailableQty(selectedItem.Stock || 0);
-        setAllocatedQty(itemToEdit.AllocatedQty || 0);
-        setRemainingQty(
-          (selectedItem.Stock || 0) - (itemToEdit.AllocatedQty || 0)
-        );
-        setUnitCost(itemToEdit.UnitCost);
-        setPurchasePrice(itemToEdit.PurchasePrice);
-        setInvoice(itemToEdit.InvoiceNumber);
-
-        const formattedDate = itemToEdit.InvoiceDate
-          ? new Date(itemToEdit.InvoiceDate).toISOString().split("T")[0]
-          : "";
-        setDate(formattedDate);
+    const fetchPO = async () => {
+      try {
+        const res = await axios.get("http://localhost:8000/po/getpo");
+        if (res.data && Array.isArray(res.data)) {
+          setPurchaseOrders(res.data);
+          const matchedOrder = res.data.find(order => order.PurchaseOrderID === selectedPurchaseId);
+          if (matchedOrder) {
+            console.log("Matched Purchase Order Details:", matchedOrder);
+            const matchingItems = products.filter(product => product.CustomerSalesOrderID === matchedOrder.CustomerSalesOrderID);
+            if (matchingItems.length > 0) {
+              console.log("Matching CPO Items:", matchingItems);
+              setMatchingCPOItems(matchingItems);
+            } else {
+              setMatchingCPOItems([]);
+            }
+          } else {
+            console.log(`No match found for Purchase Order ID: ${selectedPurchaseId}`);
+            setMatchingCPOItems([]);
+          }
+        } else {
+          console.error("Unexpected response structure:", res.data);
+        }
+      } catch (err) {
+        console.error("Error fetching purchase orders:", err);
       }
-    }
-  }, [itemToEdit, products]);
+    };
+    fetchPO();
+  }, [selectedPurchaseId, products]);
 
   const handleProductChange = (event) => {
-    const productName = event.target.value;
-    const product = products.find((p) => p.Name === productName);
+    const itemId = event.target.value;
+    const product = products.find((p) => p.ItemID.toString() === itemId);
     if (product) {
       setSelectedProduct(product);
-      setAvailableQty(product.Stock);
+      setAvailableQty(product.AllocatedQty || product.Stock || 0);
       setAllocatedQty(0);
-      setRemainingQty(product.Stock || 0);
-      setUnitCost(product.UnitCost || 0);
-      setPurchasePrice(product.PurchasePrice || 0);
+      setRemainingQty(product.AllocatedQty || product.Stock || 0);
+      setUnitCost(0);
+      setPurchasePrice(0); 
     }
   };
 
@@ -96,7 +109,6 @@ const AddOrEdit = ({
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
     setLoading(true);
 
     const purchaseOrderItem = {
@@ -114,12 +126,12 @@ const AddOrEdit = ({
       let response;
       if (itemToEdit) {
         response = await axios.put(
-          "https://order-management-p53a.onrender.com/po/editpurchaseorderitems",
+          "http://localhost:8000/po/editpurchaseorderitems",
           purchaseOrderItem
         );
       } else {
         response = await axios.post(
-          "https://order-management-p53a.onrender.com/po/addpurchaseorderitems",
+          "http://localhost:8000/po/addpurchaseorderitems",
           purchaseOrderItem
         );
       }
@@ -128,8 +140,6 @@ const AddOrEdit = ({
         toast.success(
           itemToEdit ? "Item updated successfully!" : "Item added successfully!"
         );
-
-        // Reset form
         setSelectedProduct(null);
         setAllocatedQty("");
         setAvailableQty("");
@@ -139,7 +149,6 @@ const AddOrEdit = ({
         setInvoice("");
         setDate("");
         onClose();
-        // window.location.reload();
       } else {
         toast.error(
           response.data?.message || "Something went wrong, please try again."
@@ -147,7 +156,6 @@ const AddOrEdit = ({
       }
     } catch (error) {
       console.error("Error submitting purchase order item:", error);
-
       toast.error(
         error.response?.data?.message || "An error occurred: " + error.message
       );
@@ -169,21 +177,24 @@ const AddOrEdit = ({
           </h3>
 
           <label htmlFor="item" className="customer-form__label">
-            Item:
-            <span style={{ color: "red" }}>*</span>
+            Item: <span style={{ color: "red" }}>*</span>
             <select
               id="item"
-              value={selectedProduct?.Name || ""}
+              value={selectedProduct?.ItemID || ""}
               onChange={handleProductChange}
               className="customer-form__input"
               required
             >
-              <option value="">Select an Item</option>
-              {products.map((product) => (
-                <option key={product.ItemID} value={product.Name}>
-                  {product.Name}
-                </option>
-              ))}
+              <option value="" disabled>Select Item</option>
+              {matchingCPOItems.length > 0 ? (
+                matchingCPOItems.map((item) => (
+                  <option key={item.ItemID} value={item.ItemID}>
+                    {item.ItemName}
+                  </option>
+                ))
+              ) : (
+                <option disabled>No Matching CPO Items</option>
+              )}
             </select>
           </label>
 
@@ -228,7 +239,7 @@ const AddOrEdit = ({
             <input
               id="unitCost"
               type="number"
-              value={unitCost || 0}
+              value={unitCost || ""}
               onChange={handleUnitCostChange}
               className="customer-form__input"
               required
@@ -273,9 +284,6 @@ const AddOrEdit = ({
           </label>
 
           <div className="customer-form__button-container">
-            {/* <button type="submit" className="customer-form__button">
-              Save
-            </button> */}
             <button
               type="submit"
               className="customer-form__button"

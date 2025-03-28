@@ -27,10 +27,8 @@ const Modal = styled.div`
 function ManagePurchase() {
   const [customers, setCustomers] = useState([]);
   const [purchaseOrders, setPurchaseOrders] = useState([]);
-  const [customerPOs, setCustomerPOs] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [filteredData, setFilteredData] = useState([]);
-  const [selectedCustomerPO, setSelectedCustomerPO] = useState("");
   const [selectedPurchaseOrder, setSelectedPurchaseOrder] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [purchaseData, setPurchaseData] = useState([]);
@@ -42,26 +40,23 @@ function ManagePurchase() {
   const [dropdownOpenCustomer, setDropdownOpenCustomer] = useState(false);
   const [dropdownOpenPurchaseOrder, setDropdownOpenPurchaseOrder] =
     useState(false);
-  const [dropdownOpenCustomerPO, setDropdownOpenCustomerPO] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [searchTermPO, setSearchTermPO] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(5);
   const [sortField, setSortField] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const [selectedPurchaseId, setSelectedPurchaseId] = useState(null);
   const [customesId, setCustomesId] = useState(null);
+  const [globalSearchTerm, setGlobalSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get("https://order-management-p53a.onrender.com/po/getpo");
-
+        const response = await axios.get("http://localhost:8000/po/getpo");
         const updatedData = response.data.map((purchase) => ({
           ...purchase,
           CustomerName: purchase.CustomerName,
           PurchaseTotalPrice: purchase.PurchaseTotalPrice,
-          CustomerPO: purchase.CustomerPO,
+          CustomerPO: purchase.CustomerPO || purchase.SalesOrderNumber,
         }));
 
         setPurchaseData(updatedData);
@@ -69,16 +64,78 @@ function ManagePurchase() {
         setCustomers([
           ...new Set(updatedData.map((purchase) => purchase.CustomerName)),
         ]);
-        setCustomerPOs(updatedData.map((purchase) => purchase.CustomerPO));
-        setPurchaseOrders(
-          updatedData.map((purchase) => purchase.PurchaseOrderNumber)
-        );
+        setPurchaseOrders([
+          ...new Set(
+            updatedData.map((purchase) => purchase.PurchaseOrderNumber)
+          ),
+        ]);
       } catch (error) {
         console.error("Error fetching purchase data:", error);
       }
     };
     fetchData();
   }, []);
+
+  const filterData = () => {
+    const filteredResults = purchaseData.filter((purchase) => {
+      const purchaseDate = new Date(purchase.PurchaseDate);
+      const start = startDate ? new Date(startDate) : null;
+      const end = endDate ? new Date(endDate) : null;
+
+      const searchTermLower = globalSearchTerm.toLowerCase();
+      const customerPO = purchase.CustomerPO || purchase.SalesOrderNumber || "";
+
+      const matchesGlobalSearch = globalSearchTerm
+        ? purchase.CustomerName.toLowerCase().includes(searchTermLower) ||
+          purchase.PurchaseOrderNumber.toLowerCase().includes(
+            searchTermLower
+          ) ||
+          customerPO.toLowerCase().includes(searchTermLower)
+        : true;
+
+      return (
+        (!start || purchaseDate >= start) &&
+        (!end || purchaseDate <= end) &&
+        (selectedCustomer
+          ? purchase.CustomerName === selectedCustomer
+          : true) &&
+        (selectedPurchaseOrder
+          ? purchase.PurchaseOrderNumber === selectedPurchaseOrder
+          : true) &&
+        matchesGlobalSearch
+      );
+    });
+
+    setFilteredData(filteredResults);
+    setCurrentPage(1);
+  };
+
+  useEffect(() => {
+    filterData();
+  }, [
+    globalSearchTerm,
+    purchaseData,
+    startDate,
+    endDate,
+    selectedCustomer,
+    selectedPurchaseOrder,
+  ]);
+
+  const handleCustomerSelect = (customer) => {
+    setSelectedCustomer(customer);
+    setDropdownOpenCustomer(false);
+
+    const filteredPurchases = purchaseData.filter(
+      (purchase) => purchase.CustomerName === customer
+    );
+    setPurchaseOrders([
+      ...new Set(
+        filteredPurchases.map((purchase) => purchase.PurchaseOrderNumber)
+      ),
+    ]);
+
+    setSelectedPurchaseOrder("");
+  };
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -89,12 +146,10 @@ function ManagePurchase() {
 
     try {
       const response = await fetch(
-        "https://order-management-p53a.onrender.com/po/deletePurchaseOrder",
+        "http://localhost:8000/po/deletePurchaseOrder",
         {
           method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ PurchaseOrderNumber: purchaseOrderNumber }),
         }
       );
@@ -104,7 +159,6 @@ function ManagePurchase() {
         const updatedPurchaseData = [...purchaseData];
         updatedPurchaseData.splice(index, 1);
         setPurchaseData(updatedPurchaseData);
-        setFilteredData(updatedPurchaseData);
       } else if (response.status === 404) {
         toast.error("Purchase order not found.");
       } else {
@@ -123,7 +177,6 @@ function ManagePurchase() {
 
     const sortedData = [...filteredData].sort((a, b) => {
       if (a[field] === undefined || b[field] === undefined) return 0;
-
       if (typeof a[field] === "string" && typeof b[field] === "string") {
         return order === "asc"
           ? a[field].localeCompare(b[field])
@@ -137,9 +190,8 @@ function ManagePurchase() {
     setCurrentPage(1);
   };
 
-  const handleClsoe = () => {
-    setShowModal(false);
-  };
+  const handleClsoe = () => setShowModal(false);
+
   const getSortArrow = (field) => {
     if (sortField === field) {
       return sortOrder === "asc" ? <BiUpArrowAlt /> : <BiDownArrowAlt />;
@@ -150,43 +202,14 @@ function ManagePurchase() {
   const handleStartDateChange = (e) => setStartDate(e.target.value);
   const handleEndDateChange = (e) => setEndDate(e.target.value);
 
-  const handleCustomerSelect = (customer) => {
-    setSelectedCustomer(customer);
-    setDropdownOpenCustomer(false);
-  };
+  const toggleDropdown = () => setDropdownOpenCustomer(!dropdownOpenCustomer);
 
-  const handleCustomerPOSelect = (customerPO) => {
-    setSelectedCustomerPO(customerPO);
-    setDropdownOpenCustomerPO(false);
+  const handleGlobalSearchChange = (e) => {
+    setGlobalSearchTerm(e.target.value);
   };
-
-  const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
-  const toggleDropdownCustomerPO = () =>
-    setDropdownOpenCustomerPO(!dropdownOpenCustomerPO);
 
   const handleSearch = () => {
-    const filteredResults = purchaseData.filter((purchase) => {
-      const purchaseDate = new Date(purchase.PurchaseDate);
-      const start = startDate ? new Date(startDate) : null;
-      const end = endDate ? new Date(endDate) : null;
-
-      return (
-        (!start || purchaseDate >= start) &&
-        (!end || purchaseDate <= end) &&
-        (selectedCustomer
-          ? purchase.CustomerName === selectedCustomer
-          : true) &&
-        (selectedPurchaseOrder
-          ? purchase.PurchaseOrderNumber === selectedPurchaseOrder
-          : true) &&
-        (selectedCustomerPO
-          ? purchase.SalesOrderNumber === selectedCustomerPO
-          : true)
-      );
-    });
-
-    setFilteredData(filteredResults);
-    setCurrentPage(1);
+    filterData();
   };
 
   const handleEdit = (purchase) => {
@@ -201,9 +224,8 @@ function ManagePurchase() {
     currentPage * pageSize
   );
 
-  const toggleDropdownPurchaseOrder = () => {
+  const toggleDropdownPurchaseOrder = () =>
     setDropdownOpenPurchaseOrder(!dropdownOpenPurchaseOrder);
-  };
 
   const handlePurchaseOrderSelect = (purchaseOrder) => {
     setSelectedPurchaseOrder(purchaseOrder);
@@ -227,17 +249,6 @@ function ManagePurchase() {
     setEditModalVisible(false);
   };
 
-  const handleSearchChangePO = (e) => {
-    const value = e.target.value.toLowerCase();
-    setSearchTermPO(value);
-
-    const filtered = customers.filter((customer) =>
-      customer.toLowerCase().includes(value)
-    );
-
-    setFilteredData(filtered);
-  };
-
   const handleCancelEdit = () => {
     setEditModalVisible(false);
     setSelectedPurchaseIndex(null);
@@ -254,32 +265,17 @@ function ManagePurchase() {
               <button className="StyledIn" onClick={toggleDropdown}>
                 {selectedCustomer || "Select Customer"}
               </button>
-              {dropdownOpen && (
+              {dropdownOpenCustomer && (
                 <div className="dropdownoption">
-                  <input
-                    type="text"
-                    placeholder="Search Customer"
-                    value={searchTermPO}
-                    onChange={handleSearchChangePO}
-                    className="search-input"
-                  />
-                  {customers
-                    .filter(
-                      (customer) =>
-                        customer &&
-                        customer
-                          .toLowerCase()
-                          .includes(searchTermPO.toLowerCase())
-                    )
-                    .map((customer, index) => (
-                      <div
-                        key={index}
-                        className="option"
-                        onClick={() => handleCustomerSelect(customer)}
-                      >
-                        {customer}
-                      </div>
-                    ))}
+                  {customers.map((customer, index) => (
+                    <div
+                      key={index}
+                      className="option"
+                      onClick={() => handleCustomerSelect(customer)}
+                    >
+                      {customer}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -304,24 +300,6 @@ function ManagePurchase() {
                 </div>
               )}
             </div>
-            <div className="dropdowncontainer">
-              <button className="StyledIn" onClick={toggleDropdownCustomerPO}>
-                {selectedCustomerPO || "Select CPO"}
-              </button>
-              {dropdownOpenCustomerPO && (
-                <div className="dropdownoption">
-                  {customerPOs.map((cpo) => (
-                    <div
-                      className="option"
-                      key={cpo}
-                      onClick={() => handleCustomerPOSelect(cpo)}
-                    >
-                      {cpo}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
             Order Date:
             <input
               type="date"
@@ -336,13 +314,20 @@ function ManagePurchase() {
               onChange={handleEndDateChange}
               className="StyledIn"
             />
+            <input
+              type="text"
+              placeholder="Search"
+              value={globalSearchTerm}
+              onChange={handleGlobalSearchChange}
+              className="StyledIn"
+              style={{ marginLeft: "10px", width: "100px" }}
+            />
             <button
               className="StyledButtonSearch"
               onClick={handleSearch}
               style={{ marginLeft: "10px" }}
             >
-              <BiSearch />
-              Search
+              <BiSearch /> Search
             </button>
           </div>
           <div className="RightContainer">
@@ -350,7 +335,7 @@ function ManagePurchase() {
               className="StyledButtonAdd"
               onClick={() => setShowModal(true)}
             >
-              <BiAddToQueue /> Add Pur. Order
+              <BiAddToQueue /> Add PO
             </button>
           </div>
         </div>
@@ -362,18 +347,17 @@ function ManagePurchase() {
                 <th onClick={() => handleSort("CustomerName")}>
                   Customer Name {getSortArrow("CustomerName")}
                 </th>
-                <th onClick={() => handleSort("PO")}>
-                  Purchase Order {getSortArrow("PO")}
+                <th onClick={() => handleSort("PurchaseOrderNumber")}>
+                  Purchase Order {getSortArrow("PurchaseOrderNumber")}
                 </th>
-                <th onClick={() => handleSort("CustomerPO")}>
-                  Customer PO {getSortArrow("CustomerPO")}
+                <th onClick={() => handleSort("SalesOrderNumber")}>
+                  Customer PO {getSortArrow("SalesOrderNumber")}
                 </th>
-                <th onClick={() => handleSort("PODate")}>
-                  Purchase Date {getSortArrow("PODate")}
+                <th onClick={() => handleSort("PurchaseDate")}>
+                  Purchase Date {getSortArrow("PurchaseDate")}
                 </th>
-
-                <th onClick={() => handleSort("SalesTotalPrice")}>
-                  Total Purchase {getSortArrow("SalesTotalPrice")}
+                <th onClick={() => handleSort("PurchaseTotalPrice")}>
+                  Total Purchase {getSortArrow("PurchaseTotalPrice")}
                 </th>
                 <th>Status</th>
                 <th>Action</th>
@@ -384,12 +368,12 @@ function ManagePurchase() {
                 <tr key={index}>
                   <td>{purchase.CustomerName}</td>
                   <td>{purchase.PurchaseOrderNumber}</td>
-                  <td>{purchase.SalesOrderNumber}</td>
+                  <td>{purchase.SalesOrderNumber || purchase.CustomerPO}</td>
                   <td>
                     {new Date(purchase.PurchaseDate).toLocaleDateString()}
                   </td>
                   <td>{purchase.PurchaseTotalPrice}</td>
-                  <td>{purchase.Status === 1 ? "Draft" : "Approved"}</td>
+                  <td>{purchase.Status === 1 ? "Active" : "Inactive"}</td>
                   <td>
                     <div className="buttons-group">
                       <Tooltip

@@ -3,7 +3,7 @@ import con from "../utils/db.js";
 
 const router = express.Router();
 
-// Get all suppliers
+
 router.get('/sales', async (req, res) => {
   try {
     const [rows] = await con.query('SELECT * FROM customer_po');
@@ -14,7 +14,7 @@ router.get('/sales', async (req, res) => {
   }
 });
 
-// Add a new supplier
+
 router.post("/add_customer_po", async (req, res) => {
   const { name, email, phone, area, address, city, status, gstn } = req.body;
 
@@ -41,7 +41,6 @@ router.post("/add_customer_po", async (req, res) => {
   }
 });
 
-// Get all suppliers (duplicate of /suppliers)
 router.get("/getSuppliers", async (req, res) => {
   const sql = "SELECT * FROM customer_po";
 
@@ -54,7 +53,7 @@ router.get("/getSuppliers", async (req, res) => {
   }
 });
 
-// Edit supplier details
+
 router.put("/edit_customer_po", async (req, res) => {
   const { name, email, phone, area, address, city, status, gstn } = req.body;
 
@@ -87,7 +86,7 @@ router.put("/edit_customer_po", async (req, res) => {
   }
 });
 
-// Delete a supplier
+
 router.delete("/delete_customer_po", async (req, res) => {
   const { email } = req.body;
 

@@ -41,7 +41,7 @@ function ManageItem() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    axios.get("https://order-management-p53a.onrender.com/item/getItems").then((data) => {
+    axios.get("http://localhost:8000/item/getItems").then((data) => {
       if (!data?.data?.error) {
         setItems(data?.data?.data);
         setFilteredItems(data?.data?.data);
@@ -53,9 +53,31 @@ function ManageItem() {
     fetchItemPrices();
   }, [items]);
 
+  const filterData = () => {
+    const filtered = items.filter((item) => {
+      const searchTermLower = searchTerm.toLowerCase();
+      const matchesSearch = searchTerm
+        ? item.Name.toLowerCase().includes(searchTermLower) ||
+          item.SupplierName.toLowerCase().includes(searchTermLower) ||
+          item.Category.toLowerCase().includes(searchTermLower) ||
+          item.Brand.toLowerCase().includes(searchTermLower)
+        : true;
+
+      return (
+        (selectedItem ? item.Name === selectedItem : true) &&
+        (selectedSupplier ? item.SupplierName === selectedSupplier : true) &&
+        matchesSearch
+      );
+    });
+
+    setFilteredItems(filtered);
+    setCurrentPage(1);
+    fetchItemPrices(filtered);
+  };
+
   useEffect(() => {
-    // setShowStock(false);
-  }, [filteredItems]);
+    filterData();
+  }, [searchTerm, items, selectedItem, selectedSupplier]);
 
   const handleShowStock = (item) => {
     setSelectedItemName(item.Name);
@@ -68,84 +90,39 @@ function ManageItem() {
     setSelectedItemName(item.Name);
     setSelectedItemStock(item.Stock || 0);
     setShowStock(true);
-    filteredItems();
   };
 
-  useEffect((item) => {
-    setSelectedItemStock(item);
-  }, []);
-
   const handleInputChange = (e) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-
-    if (value === "") {
-      setFilteredItems(items);
-      setCurrentPage(1);
-    } else {
-      handleSearch();
-    }
+    setSearchTerm(e.target.value);
   };
 
   const handleItemSelect = (itemName) => {
     setSelectedItem(itemName);
+    setSelectedSupplier("");
     setIsItemDropdownOpen(false);
-    filterItems(itemName, selectedSupplier);
+    setSearchTerm("");
+    filterData();
   };
 
   const handleSupplierSelect = (supplierName) => {
     setSelectedSupplier(supplierName);
     setIsSupplierDropdownOpen(false);
-    filterItems(selectedItem, supplierName);
+    setSearchTerm("");
+    filterData();
   };
 
   const handleSearch = () => {
-    const filtered = items.filter(
-      (item) =>
-        item.Description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.Category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.Brand.includes(searchTerm) ||
-        item.UnitName.includes(searchTerm)
-    );
-
-    setFilteredItems(filtered);
-    setCurrentPage(1);
-    fetchItemPrices(filtered);
-  };
-
-  const filterItems = (itemName, supplierName) => {
-    const filtered = items.filter(
-      (item) =>
-        (itemName ? item.Name === itemName : true) &&
-        (supplierName ? item.SupplierName === supplierName : true)
-    );
-    setFilteredItems(filtered);
-    setCurrentPage(1);
-    fetchItemPrices(filtered);
+    filterData();
   };
 
   const handleSearchChangeItem = (e) => {
-    const value = e.target.value.toLowerCase();
+    const value = e.target.value;
     setSearchTermItem(value);
-
-    const filtered = items.filter((item) =>
-      item.Name.toLowerCase().includes(value)
-    );
-
-    setFilteredItems(filtered);
-    setCurrentPage(1);
   };
 
   const handleSearchChangeSupplier = (e) => {
-    const value = e.target.value.toLowerCase();
+    const value = e.target.value;
     setSearchTermSupplier(value);
-
-    const filtered = items.filter((item) =>
-      item.SupplierName.toLowerCase().includes(value)
-    );
-
-    setFilteredItems(filtered);
-    setCurrentPage(1);
   };
 
   const getSortArrow = (key) => {
@@ -178,15 +155,12 @@ function ManageItem() {
   const handleDelete = (ItemID) => {
     setIsLoading(true);
     axios
-      .delete("https://order-management-p53a.onrender.com/item/deleteItems", {
+      .delete("http://localhost:8000/item/deleteItems", {
         data: { ItemID: ItemID },
       })
       .then(() => {
         toast.success("Item deleted successfully");
         setItems((prevItems) =>
-          prevItems.filter((item) => item.ItemID !== ItemID)
-        );
-        setFilteredItems((prevItems) =>
           prevItems.filter((item) => item.ItemID !== ItemID)
         );
         setIsLoading(false);
@@ -211,7 +185,7 @@ function ManageItem() {
   const handleAddItem = (item) => {
     setEditItem(item);
     setShowModal(true);
-    setSelectedItemStock(item.Stock || 0);
+    setSelectedItemStock(item?.Stock || 0);
   };
 
   const handleEditItem = (item) => {
@@ -231,7 +205,7 @@ function ManageItem() {
     try {
       const itemStockRequests = itemsToFetch.map((item) =>
         axios.get(
-          `https://order-management-p53a.onrender.com/itemPrice/getItemPrices/${item.ItemID}`
+          `http://localhost:8000/itemPrice/getItemPrices/${item.ItemID}`
         )
       );
       const responses = await Promise.all(itemStockRequests);
@@ -240,7 +214,6 @@ function ManageItem() {
 
       responses.forEach((response) => {
         const itemPrices = response.data;
-
         itemPrices.forEach((item) => {
           const qty = parseInt(item.Qty || 0, 10);
           if (stockMap[item.ItemID]) {
@@ -260,6 +233,14 @@ function ManageItem() {
 
       setFilteredItems(updatedFilteredItems);
     } catch (err) {}
+  };
+
+  const getSuppliersForSelectedItem = () => {
+    if (!selectedItem) {
+      return [...new Set(items.map((item) => item.SupplierName))];
+    }
+    const relatedItems = items.filter((item) => item.Name === selectedItem);
+    return [...new Set(relatedItems.map((item) => item.SupplierName))];
   };
 
   return (
@@ -306,10 +287,7 @@ function ManageItem() {
             </div>
 
             <div className="dropdowncontainer">
-              <button
-                className="StyledIn"
-                onClick={toggleSupplierDropdown}
-              >
+              <button className="StyledIn" onClick={toggleSupplierDropdown}>
                 {selectedSupplier || "Select Supplier"}
               </button>
               {isSupplierDropdownOpen && (
@@ -321,37 +299,37 @@ function ManageItem() {
                     onChange={handleSearchChangeSupplier}
                     className="search-input"
                   />
-                  {items
-                    .filter((item) =>
-                      item.SupplierName.toLowerCase().includes(
-                        searchTermSupplier.toLowerCase()
-                      )
+                  {getSuppliersForSelectedItem()
+                    .filter((supplier) =>
+                      supplier
+                        .toLowerCase()
+                        .includes(searchTermSupplier.toLowerCase())
                     )
-                    .map((item) => (
+                    .map((supplier) => (
                       <div
                         className="option"
-                        key={item.SupplierName}
-                        onClick={() => handleSupplierSelect(item.SupplierName)}
+                        key={supplier}
+                        onClick={() => handleSupplierSelect(supplier)}
                       >
-                        {item.SupplierName}
+                        {supplier}
                       </div>
                     ))}
                 </div>
               )}
-          
-              <input
-                className="StyledIn"
-                type="text"
-                value={searchTerm}
-                onChange={handleInputChange}
-                placeholder="Search"
-              />
-             
-
-              <button className="StyledButtonSearch" onClick={handleSearch}>
-                <BiSearch /> Search
-              </button>
             </div>
+
+            <input
+              className="StyledIn"
+              type="text"
+              value={searchTerm}
+              onChange={handleInputChange}
+              placeholder="Search"
+              style={{ width: "100px" }}
+            />
+
+            <button className="StyledButtonSearch" onClick={handleSearch}>
+              <BiSearch /> Search
+            </button>
           </div>
           <div className="RightContainer">
             <button className="StyledButtonAdd" onClick={handleAddItem}>
@@ -368,26 +346,21 @@ function ManageItem() {
                 <th onClick={() => handleSort("Name")}>
                   Item Name {getSortArrow("Name")}
                 </th>
-
                 <th onClick={() => handleSort("SupplierID")}>
                   Supplier {getSortArrow("SupplierID")}
                 </th>
                 <th onClick={() => handleSort("Category")}>
                   Category {getSortArrow("Category")}
                 </th>
-
                 <th onClick={() => handleSort("Brand")}>
                   Brand {getSortArrow("Brand")}
                 </th>
-
                 <th onClick={() => handleSort("Stock")}>
                   Stock {getSortArrow("Stock")}
                 </th>
-
                 <th onClick={() => handleSort("ItemUnitID")}>
                   Unit {getSortArrow("ItemUnitID")}
                 </th>
-
                 <th onClick={() => handleSort("Status")}>
                   Status {getSortArrow("Status")}
                 </th>
@@ -455,7 +428,6 @@ function ManageItem() {
                           </button>
                         </Popconfirm>
                       </Tooltip>
-
                       <Tooltip
                         title="Stock Utilization"
                         overlayInnerStyle={{

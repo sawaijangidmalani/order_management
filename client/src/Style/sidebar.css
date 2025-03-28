@@ -6,6 +6,8 @@
     display: flex;
     flex-direction: column;
     gap: 3.2rem;
+    width: 270px;
+    text-decoration: none;
   }
   
   @media (max-width: 768px) {

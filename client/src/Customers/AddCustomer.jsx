@@ -18,7 +18,6 @@ function AddCustomer({ closeModal, editingCustomer }) {
   const navigate = useNavigate();
   const modalRef = useRef();
   const [loading, setLoading] = useState(false);
-  
 
   const initialData = {
     CustomerID: null,
@@ -75,8 +74,8 @@ function AddCustomer({ closeModal, editingCustomer }) {
     setLoading(true);
 
     const apiUrl = editingCustomer
-      ? "https://order-management-p53a.onrender.com/customer/updateCustomer"
-      : "https://order-management-p53a.onrender.com/customer/add_customer";
+      ? "http://localhost:8000/customer/updateCustomer"
+      : "http://localhost:8000/customer/add_customer";
 
     try {
       const response = await axios.post(apiUrl, formData);

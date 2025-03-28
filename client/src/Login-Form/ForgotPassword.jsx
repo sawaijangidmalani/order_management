@@ -25,7 +25,10 @@ function ForgotPassword() {
     }
     setLoading(true);
     try {
-      const { data } = await axios.post("https://order-management-p53a.onrender.com/auth/forgotPassword", { email });
+      const { data } = await axios.post(
+        "http://localhost:8000/auth/forgotPassword",
+        { email }
+      );
       toast.success(data.message || "OTP sent successfully");
       setStep(2);
     } catch (error) {
@@ -43,7 +46,10 @@ function ForgotPassword() {
     }
     setLoading(true);
     try {
-      const { data } = await axios.post("https://order-management-p53a.onrender.com/auth/verifyOTP", { email, otp });
+      const { data } = await axios.post(
+        "http://localhost:8000/auth/verifyOTP",
+        { email, otp }
+      );
       toast.success(data.message || "OTP verified successfully");
       setStep(3);
     } catch (error) {
@@ -69,7 +75,10 @@ function ForgotPassword() {
     }
     setLoading(true);
     try {
-      const { data } = await axios.post("https://order-management-p53a.onrender.com/auth/resetPassword", { email, newPassword });
+      const { data } = await axios.post(
+        "http://localhost:8000/auth/resetPassword",
+        { email, newPassword }
+      );
       toast.success(data.message || "Password reset successfully!");
       setTimeout(() => navigate("/"), 2000);
     } catch (error) {
@@ -87,9 +96,11 @@ function ForgotPassword() {
             <FaSpinner className="loading-spinner" />
           </div>
         )}
+
         <div className="login-header">
-          <h1>Forgot Password</h1>
-          <p>Reset your password in a few steps</p>
+          <img src="/inventory.png" alt="Inventory Logo" className="logo" />
+          {/* <h1>Forgot Password</h1> */}
+          <p>Enter email to reset password</p>
         </div>
 
         <form className="login-form">
@@ -108,7 +119,11 @@ function ForgotPassword() {
                   <MdEmail className="input-icon" />
                 </div>
               </div>
-              <button className="login-button" onClick={sendOtp} disabled={loading}>
+              <button
+                className="login-button"
+                onClick={sendOtp}
+                disabled={loading}
+              >
                 Send OTP
               </button>
               <div className="additional-options">
@@ -132,7 +147,11 @@ function ForgotPassword() {
                   <MdLock className="input-icon" />
                 </div>
               </div>
-              <button className="login-button" onClick={verifyOtp} disabled={loading}>
+              <button
+                className="login-button"
+                onClick={verifyOtp}
+                disabled={loading}
+              >
                 Verify OTP
               </button>
             </>
@@ -151,9 +170,15 @@ function ForgotPassword() {
                     required
                   />
                   {showPassword ? (
-                    <MdVisibilityOff className="input-icon" onClick={() => setShowPassword(false)} />
+                    <MdVisibilityOff
+                      className="input-icon"
+                      onClick={() => setShowPassword(false)}
+                    />
                   ) : (
-                    <MdVisibility className="input-icon" onClick={() => setShowPassword(true)} />
+                    <MdVisibility
+                      className="input-icon"
+                      onClick={() => setShowPassword(true)}
+                    />
                   )}
                 </div>
               </div>
@@ -169,14 +194,24 @@ function ForgotPassword() {
                     required
                   />
                   {showConfirmPassword ? (
-                    <MdVisibilityOff className="input-icon" onClick={() => setShowConfirmPassword(false)} />
+                    <MdVisibilityOff
+                      className="input-icon"
+                      onClick={() => setShowConfirmPassword(false)}
+                    />
                   ) : (
-                    <MdVisibility className="input-icon" onClick={() => setShowConfirmPassword(true)} />
+                    <MdVisibility
+                      className="input-icon"
+                      onClick={() => setShowConfirmPassword(true)}
+                    />
                   )}
                 </div>
               </div>
 
-              <button className="login-button" onClick={resetPassword} disabled={loading}>
+              <button
+                className="login-button"
+                onClick={resetPassword}
+                disabled={loading}
+              >
                 Reset Password
               </button>
             </>

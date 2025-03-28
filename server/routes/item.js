@@ -16,15 +16,6 @@ router.get("/getItemUnits", async (req, res) => {
   }
 });
 
-// Get supplier data
-router.get("/supplier/getSupplierData", async (req, res) => {
-  try {
-    const suppliers = await SupplierModel.findAll();
-    res.json(suppliers);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch suppliers" });
-  }
-});
 
 router.get("/getItems", async (req, res) => {
   const { page = 1, limit = 20 } = req.query;

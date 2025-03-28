@@ -10,7 +10,7 @@ function Navbar() {
           <Link to="/" style={{ textDecoration: "none" }}>
             <h2>
               <span className="span">
-                <img src="home.svg" alt="home icon" />
+                <img src="/inventory.png" alt="home icon" />
               </span>
               Order Management
             </h2>

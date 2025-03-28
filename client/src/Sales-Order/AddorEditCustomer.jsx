@@ -32,7 +32,7 @@ const AddorEditCustomer = ({
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get("https://order-management-p53a.onrender.com/item/getItems");
+        const res = await axios.get("http://localhost:8000/item/getItems");
         setProducts(res.data.data);
       } catch (err) {
         console.error("Error fetching products:", err);
@@ -118,12 +118,12 @@ const AddorEditCustomer = ({
       let response;
       if (itemToEdit) {
         response = await axios.put(
-          "https://order-management-p53a.onrender.com/customerpo/editsalesorderitem",
+          "http://localhost:8000/customerpo/editsalesorderitem",
           salesOrderItem
         );
       } else {
         response = await axios.post(
-          "https://order-management-p53a.onrender.com/customerpo/addsalesorderitems",
+          "http://localhost:8000/customerpo/addsalesorderitems",
           salesOrderItem
         );
       }
@@ -164,6 +164,7 @@ const AddorEditCustomer = ({
           <h3 className="form-heading">
             {itemToEdit ? "Edit" : "Add"} Sales Order Item
           </h3>
+
           <label htmlFor="item" className="customer-form__label">
             Item:
             <span style={{ color: "red" }}>*</span>
@@ -175,11 +176,13 @@ const AddorEditCustomer = ({
               required
             >
               <option value="">Select an Item</option>
-              {products.map((product) => (
-                <option key={product.ItemID} value={product.Name}>
-                  {product.Name}
-                </option>
-              ))}
+              {products
+                .filter((product) => product.Status === 1)
+                .map((product) => (
+                  <option key={product.ItemID} value={product.Name}>
+                    {product.Name}
+                  </option>
+                ))}
             </select>
           </label>
 

@@ -60,7 +60,7 @@ function ManageCustomer() {
     const fetchCustomers = async () => {
       try {
         const result = await axios.get(
-          "https://order-management-p53a.onrender.com/customer/getCustomerData"
+          "http://localhost:8000/customer/getCustomerData"
         );
         setCustomers(result.data);
         setFilteredCustomers(result.data);
@@ -75,7 +75,7 @@ function ManageCustomer() {
   const handleDelete = (email) => {
     setIsLoading(true);
     axios
-      .delete(`https://order-management-p53a.onrender.com/customer/deleteCustomer`, {
+      .delete(`http://localhost:8000/customer/deleteCustomer`, {
         data: { email },
       })
       .then(() => {
@@ -174,7 +174,7 @@ function ManageCustomer() {
         </div>
       )}
       <div className="container">
-        <h2>Manage Customers</h2>
+        <h1>Manage Customers</h1>
         <div className="StyledDiv">
           <div className="ButtonContainer">
             <div>
@@ -196,7 +196,7 @@ function ManageCustomer() {
         </div>
 
         <div className="table-responsive">
-          <h1>Customer List</h1>
+          <h2>Customer List</h2>
           <table className="table table-bordered table-striped table-hover shadow">
             <thead className="table-secondary">
               <tr>

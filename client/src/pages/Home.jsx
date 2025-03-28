@@ -68,7 +68,7 @@ function Home() {
       setLoading(true);
       try {
         const { data } = await axios.post(
-          "https://order-management-p53a.onrender.com/auth/login",
+          "http://localhost:8000/auth/login",
           credentials
         );
         if (data?.success) {
@@ -104,7 +104,8 @@ function Home() {
           </div>
         )}
         <div className="login-header">
-          <h1>Welcome Back</h1>
+          {/* <h1>Welcome Back</h1> */}
+          <img src="/inventory.png" alt="Inventory Logo" className="logo" />
           <p>Please sign in to continue</p>
         </div>
 

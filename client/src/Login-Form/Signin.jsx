@@ -86,7 +86,7 @@ function Signin() {
       setLoading(true);
       try {
         const { data } = await axios.post(
-          "https://order-management-p53a.onrender.com/auth/signup",
+          "http://localhost:8000/auth/signup",
           sign
         );
         if (data?.success) {
@@ -121,8 +121,10 @@ function Signin() {
             <FaSpinner className="loading-spinner" />
           </div>
         )}
+
         <div className="login-header">
-          <h1>Create Account</h1>
+          <img src="/inventory.png" alt="Inventory Logo" className="logo" />
+          {/* <h1>Create Account</h1> */}
           <p>Sign up to get started</p>
         </div>
 

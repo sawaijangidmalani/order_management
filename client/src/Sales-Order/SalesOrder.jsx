@@ -12,7 +12,7 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
   const [salesOrderItems, setSalesOrderItems] = useState([]);
   const [addClick, setAddClick] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     CustomerID: "",
@@ -24,10 +24,17 @@ const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchCustomerData = async () => {
-      const res = await axios.get(
-        "https://order-management-p53a.onrender.com/customer/getCustomerData"
-      );
-      setCustomerData(res.data);
+      try {
+        const res = await axios.get(
+          "http://localhost:8000/customer/getCustomerData"
+        );
+        const activeCustomers = res.data.filter(
+          (customer) => customer.Status === 1
+        );
+        setCustomerData(activeCustomers);
+      } catch (error) {
+        console.error("Error fetching customers:", error);
+      }
     };
     fetchCustomerData();
   }, []);
@@ -82,14 +89,14 @@ const [loading, setLoading] = useState(false);
     try {
       if (existingOrder && existingOrder.CustomerSalesOrderID) {
         await axios.put(
-          `https://order-management-p53a.onrender.com/customerpo/updateCustomerPo/${formData.CustomerSalesOrderID}`,
+          `http://localhost:8000/customerpo/updateCustomerPo/${formData.CustomerSalesOrderID}`,
           data
         );
 
         toast.success("Sales Order updated successfully!");
       } else {
         await axios.post(
-          "https://order-management-p53a.onrender.com/customerpo/insertCustomerPo",
+          "http://localhost:8000/customerpo/insertCustomerPo",
           data
         );
         toast.success("Sales Order created successfully!");
@@ -137,11 +144,11 @@ const [loading, setLoading] = useState(false);
 
   return (
     <>
-     {loading && (
-            <div className="overlay">
-              <FaSpinner className="spinner" />
-            </div>
-          )}
+      {loading && (
+        <div className="overlay">
+          <FaSpinner className="spinner" />
+        </div>
+      )}
       {addClick ? (
         <AddOrEditCustomer
           onClose={handleCancel}
@@ -214,8 +221,8 @@ const [loading, setLoading] = useState(false);
                 required
               >
                 <option value="">Select Status</option>
-                <option value={1}>Draft</option>
-                <option value={0}>Approved</option>
+                <option value={1}>Active</option>
+                <option value={0}>Inactive</option>
               </select>
             </label>
 
@@ -240,7 +247,7 @@ const [loading, setLoading] = useState(false);
           /> */}
 
           {selectedSaleId ? (
-              <AddSalesItem
+            <AddSalesItem
               selectedSaleId={selectedSaleId}
               items={salesOrderItems}
               handleDeleteItem={handleDeleteItem}
@@ -258,7 +265,7 @@ const [loading, setLoading] = useState(false);
             >
               Save
             </button> */}
-            
+
             <button
               type="submit"
               className="customer-form__button"

@@ -29,37 +29,60 @@ const PurchaseOrder = ({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const fetchCustomerPoData = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:8000/customerpo/getCustomerPo"
+        );
+        const activeCustomerPo = response.data.filter(
+          (customer) => customer.Status === 1
+        );
+
+        const uniqueCustomers = Array.from(
+          new Map(
+            activeCustomerPo.map((customer) => [
+              customer.CustomerName,
+              customer,
+            ])
+          ).values()
+        );
+
+        setCustomerData(uniqueCustomers);
+      } catch (error) {
+        console.error("Error fetching customer PO data:", error);
+      }
+    };
+    fetchCustomerPoData();
+  }, []);
+
+  useEffect(() => {
+    if (!customerID) {
+      setSalesData([]);
+      return;
+    }
+
     const fetchSalesData = async () => {
       try {
         const response = await axios.get(
-          "https://order-management-p53a.onrender.com/customerpo/getCustomerPo"
+          "http://localhost:8000/customerpo/getCustomerPo"
         );
-        const updatedData = response.data.map((item) => ({
-          CustomerSalesOrderID: item.CustomerSalesOrderID,
-          CustomerName: item.CustomerName,
-          SalesOrderNumber: item.SalesOrderNumber,
-        }));
-        setSalesData(updatedData);
+        const activeCPOs = response.data
+          .filter(
+            (item) =>
+              item.Status === 1 && item.CustomerID === parseInt(customerID)
+          )
+          .map((item) => ({
+            CustomerSalesOrderID: item.CustomerSalesOrderID,
+            SalesOrderNumber: item.SalesOrderNumber,
+          }));
+        setSalesData(activeCPOs);
       } catch (error) {
         console.error("Error fetching sales data:", error);
       }
     };
-    fetchSalesData();
-  }, []);
 
-  useEffect(() => {
-    const fetchCustomerData = async () => {
-      try {
-        const response = await axios.get(
-          "https://order-management-p53a.onrender.com/customer/getCustomerData"
-        );
-        setCustomerData(response.data);
-      } catch (error) {
-        console.error("Error fetching customer data:", error);
-      }
-    };
-    fetchCustomerData();
-  }, []);
+    fetchSalesData();
+  }, [customerID]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -82,7 +105,7 @@ const PurchaseOrder = ({
 
       if (editData && editData.PurchaseOrderID) {
         response = await axios.put(
-          `https://order-management-p53a.onrender.com/po/updatepo/${editData.PurchaseOrderID}`,
+          `http://localhost:8000/po/updatepo/${editData.PurchaseOrderID}`,
           data
         );
 
@@ -91,7 +114,7 @@ const PurchaseOrder = ({
           setLoading(false);
         }
       } else {
-        response = await axios.post("https://order-management-p53a.onrender.com/po/insertpo", data);
+        response = await axios.post("http://localhost:8000/po/insertpo", data);
 
         if (response.status === 200 || response.status === 201) {
           toast.success("Purchase order Saved successfully");
@@ -166,6 +189,7 @@ const PurchaseOrder = ({
           selectedPurchaseId={selectedPurchaseId}
           onPurchaseData={handleAddItem}
           customesId={customesId}
+          
         />
       ) : (
         <>
@@ -175,8 +199,7 @@ const PurchaseOrder = ({
             </h3>
 
             <label htmlFor="customer">
-              Customer:
-              <span style={{ color: "red" }}>*</span>
+              Customer: <span style={{ color: "red" }}>*</span>
               <select
                 id="customer"
                 name="CustomerID"
@@ -188,7 +211,7 @@ const PurchaseOrder = ({
                 <option value="">Select Customer</option>
                 {customerData.map((customer) => (
                   <option key={customer.CustomerID} value={customer.CustomerID}>
-                    {customer.Name}
+                    {customer.CustomerName}
                   </option>
                 ))}
               </select>
@@ -209,8 +232,7 @@ const PurchaseOrder = ({
             </label>
 
             <label htmlFor="customerpo">
-              Customer PO:
-              <span style={{ color: "red" }}>*</span>
+              Customer PO: <span style={{ color: "red" }}>*</span>
               <select
                 id="customerPO"
                 name="CustomerPO"
@@ -218,6 +240,7 @@ const PurchaseOrder = ({
                 onChange={handleInputChange}
                 className="customer-salesorder_input"
                 required
+                disabled={!customerID}
               >
                 <option value="">Select CPO</option>
                 {salesData.map((item) => (
@@ -256,8 +279,8 @@ const PurchaseOrder = ({
                 required
               >
                 <option>Select Status</option>
-                <option value={1}>Draft</option>
-                <option value={0}>Approved</option>
+                <option value={1}>Active</option>
+                <option value={0}>Inactive</option>
               </select>
             </label>
 

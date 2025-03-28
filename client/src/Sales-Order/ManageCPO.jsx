@@ -43,14 +43,14 @@ function ManageCPO() {
   const [pageSize] = useState(5);
   const [sortField, setSortField] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
+  const [globalSearchTerm, setGlobalSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          "https://order-management-p53a.onrender.com/customerpo/getCustomerPo"
+          "http://localhost:8000/customerpo/getCustomerPo"
         );
-
 
         const updatedData = response.data.map((item) => ({
           ...item,
@@ -63,13 +63,53 @@ function ManageCPO() {
         setCustomers([
           ...new Set(updatedData.map((item) => item.CustomerName)),
         ]);
-        setCustomerPOs(updatedData.map((item) => item.SalesOrderNumber));
+        setCustomerPOs([
+          ...new Set(updatedData.map((item) => item.SalesOrderNumber)),
+        ]);
       } catch (error) {
         console.error("Error fetching sales data:", error);
       }
     };
     fetchData();
   }, []);
+
+  const filterData = () => {
+    const filteredResults = salesData.filter((item) => {
+      const saleDate = new Date(item.SalesDate);
+      const start = startDate ? new Date(startDate) : null;
+      const end = endDate ? new Date(endDate) : null;
+
+      const searchTermLower = globalSearchTerm.toLowerCase();
+      const matchesGlobalSearch = globalSearchTerm
+        ? item.CustomerName.toLowerCase().includes(searchTermLower) ||
+          item.SalesOrderNumber.toLowerCase().includes(searchTermLower)
+        : true;
+
+      return (
+        (!start || saleDate >= start) &&
+        (!end || saleDate <= end) &&
+        (selectedCustomer ? item.CustomerName === selectedCustomer : true) &&
+        (selectedCustomerPO
+          ? item.SalesOrderNumber === selectedCustomerPO
+          : true) &&
+        matchesGlobalSearch
+      );
+    });
+
+    setFilteredData(filteredResults);
+    setCurrentPage(1);
+  };
+
+  useEffect(() => {
+    filterData();
+  }, [
+    globalSearchTerm,
+    salesData,
+    startDate,
+    endDate,
+    selectedCustomer,
+    selectedCustomerPO,
+  ]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -80,12 +120,10 @@ function ManageCPO() {
 
     try {
       const response = await fetch(
-        "https://order-management-p53a.onrender.com/customerpo/deleteCustomerPo",
+        "http://localhost:8000/customerpo/deleteCustomerPo",
         {
           method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ CustomerSalesOrderID: customerSalesOrderID }),
         }
       );
@@ -95,7 +133,6 @@ function ManageCPO() {
         const updatedSalesData = [...salesData];
         updatedSalesData.splice(index, 1);
         setSalesData(updatedSalesData);
-        setFilteredData(updatedSalesData);
       } else if (response.status === 404) {
         toast.error("Sales order not found.");
       } else {
@@ -114,7 +151,6 @@ function ManageCPO() {
 
     const sortedData = [...filteredData].sort((a, b) => {
       if (a[field] === undefined || b[field] === undefined) return 0;
-
       if (typeof a[field] === "string" && typeof b[field] === "string") {
         return order === "asc"
           ? a[field].localeCompare(b[field])
@@ -141,6 +177,14 @@ function ManageCPO() {
   const handleCustomerSelect = (customer) => {
     setSelectedCustomer(customer);
     setDropdownOpen(false);
+
+    const filteredSales = salesData.filter(
+      (item) => item.CustomerName === customer
+    );
+    setCustomerPOs([
+      ...new Set(filteredSales.map((item) => item.SalesOrderNumber)),
+    ]);
+    setSelectedCustomerPO("");
   };
 
   const handleCustomerPOSelect = (customerPO) => {
@@ -152,35 +196,12 @@ function ManageCPO() {
   const toggleDropdownCustomerPO = () =>
     setDropdownOpenCustomerPO(!dropdownOpenCustomerPO);
 
+  const handleGlobalSearchChange = (e) => {
+    setGlobalSearchTerm(e.target.value);
+  };
+
   const handleSearch = () => {
-    let filtered = salesData;
-
-    if (new Date(startDate) > new Date(endDate)) {
-      alert("Start date cannot be later than end date!");
-      return;
-    }
-
-    if (startDate && endDate) {
-      filtered = filtered.filter((item) => {
-        const saleDate = new Date(item.SalesDate);
-        return saleDate >= new Date(startDate) && saleDate <= new Date(endDate);
-      });
-    }
-
-    if (selectedCustomer) {
-      filtered = filtered.filter(
-        (item) => item.CustomerName === selectedCustomer
-      );
-    }
-
-    if (selectedCustomerPO) {
-      filtered = filtered.filter(
-        (item) => item.SalesOrderNumber === selectedCustomerPO
-      );
-    }
-
-    setFilteredData(filtered);
-    setCurrentPage(1);
+    filterData();
   };
 
   const handleEdit = (item) => {
@@ -252,13 +273,20 @@ function ManageCPO() {
             onChange={handleEndDateChange}
             className="StyledIn"
           />
+          <input
+            type="text"
+            placeholder="Search"
+            value={globalSearchTerm}
+            onChange={handleGlobalSearchChange}
+            className="StyledIn"
+            style={{ marginLeft: "10px", width: "100px" }}
+          />
           <button
             className="StyledButtonSearch"
             onClick={handleSearch}
             style={{ marginLeft: "10px" }}
           >
-            <BiSearch />
-            Search
+            <BiSearch /> Search
           </button>
         </div>
 
@@ -301,7 +329,7 @@ function ManageCPO() {
                 <td>{item.SalesOrderNumber}</td>
                 <td>{new Date(item.SalesDate).toLocaleDateString()}</td>
                 <td>{item.SalesTotalPrice}</td>
-                <td>{item.Status === 1 ? "Draft" : "Approved"}</td>
+                <td>{item.Status === 1 ? "Active" : "Inactive"}</td>
                 <td>
                   <div className="buttons-group">
                     <Tooltip

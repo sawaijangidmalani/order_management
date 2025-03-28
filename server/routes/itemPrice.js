@@ -3,6 +3,7 @@ import con from "../utils/db.js";
 
 const router = express.Router();
 
+// Get Item Prices
 router.get("/getItemPrices/:itemId", async (req, res) => {
   const itemId = req.params.itemId;
 
@@ -11,7 +12,6 @@ router.get("/getItemPrices/:itemId", async (req, res) => {
       "SELECT * FROM itemsstock WHERE ItemID = ?",
       [itemId]
     );
-
     res.json(results);
   } catch (error) {
     console.error("Error fetching item prices:", error);
@@ -42,22 +42,20 @@ router.post("/addItemPrice", async (req, res) => {
   `;
 
   try {
-    // Insert into itemsstock
     const [insertResult] = await con.query(insertSql, [
       ItemID,
       PurchasePrice,
-      ProviderID,
+      ProviderID || "1",
       PurchaseDate,
       Qty,
-      RemainingQty || 0,
+      RemainingQty || Qty,
     ]);
 
-    // Update items table after insertion
-    const [updateResult] = await con.query(updateSql, [ItemID]);
+    await con.query(updateSql, [ItemID]);
 
     res.status(201).json({
       message: "Item price added successfully and stock updated",
-      ItemID: insertResult.insertId,
+      ItemStockID: insertResult.insertId,
     });
   } catch (error) {
     console.error("Database error:", error);
@@ -68,7 +66,7 @@ router.post("/addItemPrice", async (req, res) => {
   }
 });
 
-// **3. Update existing item price (PUT)**
+// Update Item Price
 router.put("/updateItemPrice/:id", async (req, res) => {
   const { id } = req.params;
   const { PurchasePrice, Qty, PurchaseDate, ItemID } = req.body;
@@ -102,7 +100,7 @@ router.put("/updateItemPrice/:id", async (req, res) => {
       return res.status(404).json({ message: "Item not found" });
     }
 
-    const [updateStockResult] = await con.query(updateStockSql, [ItemID]);
+    await con.query(updateStockSql, [ItemID]);
 
     res.json({
       message: "Item price and stock updated successfully",
@@ -116,8 +114,7 @@ router.put("/updateItemPrice/:id", async (req, res) => {
   }
 });
 
-// **4. Delete item price (DELETE)**
-
+// Delete Item Price
 router.delete("/deleteItemPrice/:id", async (req, res) => {
   const { id } = req.params;
 
@@ -139,7 +136,7 @@ router.delete("/deleteItemPrice/:id", async (req, res) => {
         FROM itemsstock
         GROUP BY ItemID
     ) is_total ON i.ItemID = is_total.ItemID
-    SET i.Stock = is_total.TotalQty
+    SET i.Stock = COALESCE(is_total.TotalQty, 0)
     WHERE i.ItemID = ?
   `;
 
