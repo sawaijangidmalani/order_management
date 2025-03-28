@@ -73,7 +73,7 @@ function ItemPrice({
     setLoading(true);
     try {
       const response = await axios.get(
-        `https://order-management-p53a.onrender.com/itemPrice/getItemPrices/${itemId}`
+        `http://localhost:8000/itemPrice/getItemPrices/${itemId}`
       );
       setItemPriceData(response.data);
       if (onDataUpdate) onDataUpdate(response.data);
@@ -110,13 +110,13 @@ function ItemPrice({
     try {
       if (isEditing && editItemId) {
         await axios.put(
-          `https://order-management-p53a.onrender.com/itemPrice/updateItemPrice/${editItemId}`,
+          `http://localhost:8000/itemPrice/updateItemPrice/${editItemId}`,
           payload
         );
         toast.success("Item price updated successfully!");
       } else {
         await axios.post(
-          "https://order-management-p53a.onrender.com/itemPrice/addItemPrice",
+          "http://localhost:8000/itemPrice/addItemPrice",
           payload
         );
         toast.success("Item price added successfully!");
@@ -146,7 +146,7 @@ function ItemPrice({
     setLoading(true);
     try {
       await axios.delete(
-        `https://order-management-p53a.onrender.com/itemPrice/deleteItemPrice/${id}`
+        `http://localhost:8000/itemPrice/deleteItemPrice/${id}`
       );
       await fetchItemPrices(selectedItemId);
       toast.success("Item price deleted successfully!");

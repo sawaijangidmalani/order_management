@@ -32,7 +32,7 @@ const PurchaseOrder = ({
     const fetchCustomerPoData = async () => {
       try {
         const response = await axios.get(
-          "https://order-management-p53a.onrender.com/customerpo/getCustomerPo"
+          "http://localhost:8000/customerpo/getCustomerPo"
         );
         const activeCustomerPo = response.data.filter(
           (customer) => customer.Status === 1
@@ -64,7 +64,7 @@ const PurchaseOrder = ({
     const fetchSalesData = async () => {
       try {
         const response = await axios.get(
-          "https://order-management-p53a.onrender.com/customerpo/getCustomerPo"
+          "http://localhost:8000/customerpo/getCustomerPo"
         );
         const activeCPOs = response.data
           .filter(
@@ -105,7 +105,7 @@ const PurchaseOrder = ({
 
       if (editData && editData.PurchaseOrderID) {
         response = await axios.put(
-          `https://order-management-p53a.onrender.com/po/updatepo/${editData.PurchaseOrderID}`,
+          `http://localhost:8000/po/updatepo/${editData.PurchaseOrderID}`,
           data
         );
 
@@ -114,7 +114,7 @@ const PurchaseOrder = ({
           setLoading(false);
         }
       } else {
-        response = await axios.post("https://order-management-p53a.onrender.com/po/insertpo", data);
+        response = await axios.post("http://localhost:8000/po/insertpo", data);
 
         if (response.status === 200 || response.status === 201) {
           toast.success("Purchase order Saved successfully");
