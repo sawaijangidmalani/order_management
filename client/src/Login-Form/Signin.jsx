@@ -86,7 +86,7 @@ function Signin() {
       setLoading(true);
       try {
         const { data } = await axios.post(
-          "http://localhost:8000/auth/signup",
+          "https://order-management-b0de.onrender.com/auth/signup",
           sign
         );
         if (data?.success) {

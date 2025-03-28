@@ -68,7 +68,7 @@ function Home() {
       setLoading(true);
       try {
         const { data } = await axios.post(
-          "http://localhost:8000/auth/login",
+          "https://order-management-b0de.onrender.com/auth/login",
           credentials
         );
         if (data?.success) {

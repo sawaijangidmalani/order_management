@@ -36,8 +36,8 @@ const AddItem = ({ editItem, closeModal }) => {
   const loadData = async () => {
     try {
       const [supplierRes, unitsRes] = await Promise.all([
-        axios.get("http://localhost:8000/supplier/getSupplierData"),
-        axios.get("http://localhost:8000/item/getItemUnits"),
+        axios.get("https://order-management-b0de.onrender.com/supplier/getSupplierData"),
+        axios.get("https://order-management-b0de.onrender.com/item/getItemUnits"),
       ]);
       setSuppliers(supplierRes.data);
       setItemUnits(unitsRes.data);
@@ -89,8 +89,8 @@ const AddItem = ({ editItem, closeModal }) => {
 
     const isEditMode = editItem && editItem.ItemID;
     const apiUrl = isEditMode
-      ? "http://localhost:8000/item/updateItems"
-      : "http://localhost:8000/item/add_items";
+      ? "https://order-management-b0de.onrender.com/item/updateItems"
+      : "https://order-management-b0de.onrender.com/item/add_items";
 
     try {
       const response = await axios.post(apiUrl, formData);
