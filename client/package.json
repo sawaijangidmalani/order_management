@@ -2,6 +2,7 @@
   "name": "order-management",
   "private": true,
   "version": "0.0.0",
+  "homepage": "/",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -55,3 +56,5 @@
   "license": "ISC",
   "description": ""
 }
+
+

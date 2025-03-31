@@ -224,7 +224,7 @@ function ManageCustomer() {
                   <td>{customer.Name}</td>
                   <td>{customer.Email}</td>
                   <td>{customer.Phone}</td>
-                  <td>{customer.Area}</td>
+                  <td>{customer.Area}-{customer.City}</td>
                   <td>{customer.Status === 1 ? "Active" : "Inactive"}</td>
                   <td>
                     <div className="buttons-group">

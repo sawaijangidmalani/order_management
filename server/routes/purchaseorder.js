@@ -212,7 +212,6 @@ router.post("/addpurchaseorderitems", async (req, res) => {
   VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)
 `;
 
-
   const updateSql = `
     UPDATE purchaseorders
     SET PurchaseTotalPrice = (
