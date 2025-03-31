@@ -33,27 +33,35 @@ const AddItem = ({ editItem, closeModal }) => {
   const [loading, setLoading] = useState(false);
   const modalRef = useRef();
 
-  const loadData = async () => {
+  const fetchSuppliers = async () => {
     try {
-      const [supplierRes, unitsRes] = await Promise.all([
-        axios.get(
-          "https://order-management-tgh3.onrender.com/supplier/getSupplierData"
-        ),
-        axios.get(
-          "https://order-management-tgh3.onrender.com/item/getItemUnits"
-        ),
-      ]);
-      setSuppliers(supplierRes.data);
-      setItemUnits(unitsRes.data);
+      const response = await axios.get(
+        "https://order-management-tgh3.onrender.com/supplier/getSupplierData"
+      );
+      setSuppliers(response.data);
     } catch (err) {
-      console.error("Error fetching data:", err);
-      toast.error("Failed to load suppliers or item units.");
+      console.error("Error fetching suppliers:", err);
+      toast.error("Failed to load suppliers.");
     }
   };
-
+  
+  const fetchItemUnits = async () => {
+    try {
+      const response = await axios.get(
+        "https://order-management-tgh3.onrender.com/item/getItemUnits"
+      );
+      setItemUnits(response.data);
+    } catch (err) {
+      console.error("Error fetching item units:", err);
+      toast.error("Failed to load item units.");
+    }
+  };
+  
   useEffect(() => {
-    loadData();
+    fetchSuppliers();
+    fetchItemUnits();
   }, []);
+  
 
   useEffect(() => {
     if (editItem && editItem.ItemID) {

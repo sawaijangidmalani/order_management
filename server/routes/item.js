@@ -7,41 +7,28 @@ const sendErrorResponse = (res, statusCode, message, details = null) => {
   res.status(statusCode).json({ error: true, message, details });
 };
 
-// router.get("/getItemUnits", async (req, res) => {
-//   try {
-//     const [units] = await pool.query("SELECT * FROM ItemUnits");
-//     res.json(units);
-//   } catch (error) {
-//     res.status(500).json({ error: "Failed to fetch item units" });
-//   }
-// });
-
 router.get("/getItemUnits", async (req, res) => {
   try {
-    const sql = "SELECT * FROM itemunits";
-    con.query(sql, (err, result) => {
-      if (err) {
-        console.error("Database Error:", err);
-        return res.status(500).json({ error: "Database query failed" });
-      }
-      res.json(result);
-    });
+    const [units] = await pool.query("SELECT * FROM itemunits");
+    res.json(units);
   } catch (error) {
     console.error("Server Error:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
-
 router.get("/getSupplierData", async (req, res) => {
   try {
     const [suppliers] = await pool.query("SELECT * FROM suppliers");
     res.json(suppliers);
   } catch (error) {
-    res.status(500).json({ error: true, message: "Failed to fetch suppliers", details: error.message });
+    res.status(500).json({
+      error: true,
+      message: "Failed to fetch suppliers",
+      details: error.message,
+    });
   }
 });
-
 
 router.get("/getItems", async (req, res) => {
   const { page = 1, limit = 20 } = req.query;
