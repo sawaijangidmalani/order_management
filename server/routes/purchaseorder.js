@@ -207,10 +207,11 @@ router.post("/addpurchaseorderitems", async (req, res) => {
   }
 
   const insertSql = `
-    INSERT INTO purchaseorderitems
-    (ItemID, AllocatedQty, UnitCost, PurchasePrice, InvoiceNumber, InvoiceDate, PurchaseOrderID) 
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `;
+  INSERT INTO purchaseorderitems
+  (PurchaseOrderItemID, ItemID, AllocatedQty, UnitCost, PurchasePrice, InvoiceNumber, InvoiceDate, PurchaseOrderID) 
+  VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)
+`;
+
 
   const updateSql = `
     UPDATE purchaseorders
