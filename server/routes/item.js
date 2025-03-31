@@ -16,6 +16,15 @@ router.get("/getItemUnits", async (req, res) => {
   }
 });
 
+router.get("/getSupplierData", async (req, res) => {
+  try {
+    const [suppliers] = await pool.query("SELECT * FROM suppliers");
+    res.json(suppliers);
+  } catch (error) {
+    res.status(500).json({ error: true, message: "Failed to fetch suppliers", details: error.message });
+  }
+});
+
 
 router.get("/getItems", async (req, res) => {
   const { page = 1, limit = 20 } = req.query;

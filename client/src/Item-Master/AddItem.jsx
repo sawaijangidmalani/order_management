@@ -36,8 +36,12 @@ const AddItem = ({ editItem, closeModal }) => {
   const loadData = async () => {
     try {
       const [supplierRes, unitsRes] = await Promise.all([
-        axios.get("https://order-management-tgh3.onrender.com/supplier/getSupplierData"),
-        axios.get("https://order-management-tgh3.onrender.com/item/getItemUnits"),
+        axios.get(
+          "https://order-management-tgh3.onrender.com/supplier/getSupplierData"
+        ),
+        axios.get(
+          "https://order-management-tgh3.onrender.com/item/getItemUnits"
+        ),
       ]);
       setSuppliers(supplierRes.data);
       setItemUnits(unitsRes.data);
@@ -146,28 +150,6 @@ const AddItem = ({ editItem, closeModal }) => {
                 />
               </label>
 
-              {/* <label className="customer-form__label">
-                Supplier:
-                <span style={{ color: "red" }}>*</span>
-                <select
-                  name="SupplierID"
-                  value={formData.SupplierID}
-                  onChange={handleInputChange}
-                  className="customer-form__input"
-                  required
-                >
-                  <option value="">Select Supplier</option>
-                  {suppliers.map((supplier) => (
-                    <option
-                      key={supplier.SupplierID}
-                      value={supplier.SupplierID}
-                    >
-                      {supplier.Name}
-                    </option>
-                  ))}
-                </select>
-              </label> */}
-
               <label className="customer-form__label">
                 Supplier:
                 <span style={{ color: "red" }}>*</span>
@@ -180,7 +162,7 @@ const AddItem = ({ editItem, closeModal }) => {
                 >
                   <option value="">Select Supplier</option>
                   {suppliers
-                    .filter((supplier) => supplier.Status === 1) // Only active suppliers
+                    .filter((supplier) => supplier.Status === 1)
                     .map((supplier) => (
                       <option
                         key={supplier.SupplierID}
