@@ -36,7 +36,6 @@ router.post("/login", async (req, res) => {
     const [result] = await pool.query(sql, [email]);
 
     if (result.length === 0) {
-      // Email exist nahi karta
       return res
         .status(401)
         .json({ success: false, message: "Incorrect Email" });
@@ -46,13 +45,11 @@ router.post("/login", async (req, res) => {
     const isMatch = await comparePassword(password, user.passwordhash);
 
     if (!isMatch) {
-      // Password galat hai
       return res
         .status(401)
         .json({ success: false, message: "Incorrect Password" });
     }
 
-    // Email & Password dono sahi hai
     res.json({
       success: true,
       user: {
@@ -136,7 +133,7 @@ router.post("/signup", async (req, res) => {
     res.status(201).json({ success: true, message: "User registered successfully" });
   } catch (err) {
     console.error("❌ Error processing signup request:", err);
-    res.status(500).json({ error: err.message }); // Send full error response
+    res.status(500).json({ error: err.message });
   }
 });
 

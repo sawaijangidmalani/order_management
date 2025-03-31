@@ -60,7 +60,7 @@ function ManageCustomer() {
     const fetchCustomers = async () => {
       try {
         const result = await axios.get(
-          "http://localhost:8000/customer/getCustomerData"
+          "https://order-management-tgh3.onrender.com/customer/getCustomerData"
         );
         setCustomers(result.data);
         setFilteredCustomers(result.data);
@@ -75,7 +75,7 @@ function ManageCustomer() {
   const handleDelete = (email) => {
     setIsLoading(true);
     axios
-      .delete(`http://localhost:8000/customer/deleteCustomer`, {
+      .delete(`https://order-management-tgh3.onrender.com/customer/deleteCustomer`, {
         data: { email },
       })
       .then(() => {

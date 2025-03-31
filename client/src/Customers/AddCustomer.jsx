@@ -74,8 +74,8 @@ function AddCustomer({ closeModal, editingCustomer }) {
     setLoading(true);
 
     const apiUrl = editingCustomer
-      ? "http://localhost:8000/customer/updateCustomer"
-      : "http://localhost:8000/customer/add_customer";
+      ? "https://order-management-tgh3.onrender.com/customer/updateCustomer"
+      : "https://order-management-tgh3.onrender.com/customer/add_customer";
 
     try {
       const response = await axios.post(apiUrl, formData);
