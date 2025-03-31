@@ -1,5 +1,5 @@
 import express from "express";
-import con from "../utils/db.js";
+import pool from "../utils/db.js";
 
 const router = express.Router();
 
@@ -40,9 +40,9 @@ router.post("/insertpo", async (req, res) => {
   `;
 
   try {
-    await con.query("START TRANSACTION");
+    await pool.query("START TRANSACTION");
 
-    const [poResult] = await con.query(insertPOQuery, [
+    const [poResult] = await pool.query(insertPOQuery, [
       CustomerSalesOrderID,
       CustomerID,
       ProviderID || 1,
@@ -61,13 +61,13 @@ router.post("/insertpo", async (req, res) => {
         item.Quantity,
         item.Price || 0,
       ]);
-      await con.query(insertItemsQuery, [itemValues]);
+      await pool.query(insertItemsQuery, [itemValues]);
     }
 
-    await con.query("COMMIT");
+    await pool.query("COMMIT");
     res.status(201).json({ message: "Purchase order inserted successfully" });
   } catch (error) {
-    await con.query("ROLLBACK");
+    await pool.query("ROLLBACK");
     console.error("Error inserting purchase order:", error.message);
     res.status(500).json({
       error: true,
@@ -93,7 +93,7 @@ GROUP BY po.PurchaseOrderID;
 `;
 
   try {
-    const [results] = await con.query(sql);
+    const [results] = await pool.query(sql);
     res.status(200).json(results);
   } catch (err) {
     console.error("Error fetching purchase orders:", err);
@@ -123,7 +123,7 @@ router.put("/updatepo/:purchaseOrderNumber", async (req, res) => {
   `;
 
   try {
-    await con.query("START TRANSACTION");
+    await pool.query("START TRANSACTION");
 
     const updateValues = [
       CustomerSalesOrderID,
@@ -133,7 +133,7 @@ router.put("/updatepo/:purchaseOrderNumber", async (req, res) => {
       purchaseOrderNumber,
     ];
 
-    const [result] = await con.query(updateQuery, updateValues);
+    const [result] = await pool.query(updateQuery, updateValues);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({
@@ -142,10 +142,10 @@ router.put("/updatepo/:purchaseOrderNumber", async (req, res) => {
       });
     }
 
-    await con.query("COMMIT");
+    await pool.query("COMMIT");
     res.status(200).json({ message: "Purchase order updated successfully" });
   } catch (error) {
-    await con.query("ROLLBACK");
+    await pool.query("ROLLBACK");
     console.error("Error updating data:", error.message);
     res.status(500).json({
       error: true,
@@ -165,7 +165,7 @@ router.delete("/deletePurchaseOrder", async (req, res) => {
   const sql = "DELETE FROM purchaseorders WHERE PurchaseOrderNumber = ?";
 
   try {
-    const [result] = await con.query(sql, [PurchaseOrderNumber]);
+    const [result] = await pool.query(sql, [PurchaseOrderNumber]);
 
     if (result.affectedRows > 0) {
       res.status(200).send("Purchase order deleted successfully.");
@@ -181,67 +181,6 @@ router.delete("/deletePurchaseOrder", async (req, res) => {
 });
 
 // Add Purchase Order Item
-// router.post("/addpurchaseorderitems", async (req, res) => {
-//   const {
-//     ItemID,
-//     AllocatedQty,
-//     UnitCost,
-//     PurchasePrice,
-//     InvoiceNumber,
-//     InvoiceDate,
-//     PurchaseOrderID,
-//   } = req.body;
-
-//   if (!PurchaseOrderID || !ItemID) {
-//     return res.status(400).json({ message: "Missing required fields." });
-//   }
-
-//   if (
-//     isNaN(parseFloat(AllocatedQty)) ||
-//     isNaN(parseFloat(UnitCost)) ||
-//     isNaN(parseFloat(PurchasePrice)) ||
-//     !InvoiceNumber ||
-//     !InvoiceDate
-//   ) {
-//     return res.status(400).json({ message: "Invalid or missing fields." });
-//   }
-
-//   const insertSql = `
-//     INSERT INTO purchaseorderitems
-//     (ItemID, AllocatedQty, UnitCost, PurchasePrice, InvoiceNumber, InvoiceDate, PurchaseOrderID) 
-//     VALUES (?, ?, ?, ?, ?, ?, ?)
-//   `;
-
-//   const updateSql = `
-//     UPDATE purchaseorders
-//     SET PurchaseTotalPrice = (
-//       SELECT COALESCE(SUM(PurchasePrice), 0)
-//       FROM purchaseorderitems
-//       WHERE PurchaseOrderID = ?
-//     )
-//     WHERE PurchaseOrderID = ?
-//   `;
-
-//   try {
-//     await con.query(insertSql, [
-//       ItemID,
-//       AllocatedQty,
-//       UnitCost,
-//       PurchasePrice,
-//       InvoiceNumber,
-//       InvoiceDate,
-//       PurchaseOrderID,
-//     ]);
-
-//     await con.query(updateSql, [PurchaseOrderID, PurchaseOrderID]);
-
-//     res.status(201).json({ success: true });
-//   } catch (error) {
-//     console.error("Database error:", error);
-//     res.status(500).json({ success: false });
-//   }
-// });
-
 router.post("/addpurchaseorderitems", async (req, res) => {
   const {
     ItemID,
@@ -284,10 +223,7 @@ router.post("/addpurchaseorderitems", async (req, res) => {
   `;
 
   try {
-    const db = con.promise(); // Convert connection to promise-based
-
-    // Insert Query
-    await db.query(insertSql, [
+    await pool.query(insertSql, [
       ItemID,
       AllocatedQty,
       UnitCost,
@@ -297,16 +233,14 @@ router.post("/addpurchaseorderitems", async (req, res) => {
       PurchaseOrderID,
     ]);
 
-    // Update Query
-    await db.query(updateSql, [PurchaseOrderID, PurchaseOrderID]);
+    await pool.query(updateSql, [PurchaseOrderID, PurchaseOrderID]);
 
-    res.status(201).json({ success: true, message: "Item added successfully!" });
+    res.status(201).json({ success: true });
   } catch (error) {
     console.error("Database error:", error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false });
   }
 });
-
 
 // Edit Purchase Order Item
 router.put("/editpurchaseorderitems", async (req, res) => {
@@ -356,7 +290,7 @@ router.put("/editpurchaseorderitems", async (req, res) => {
 `;
 
   try {
-    const [itemResult] = await con.query(updateItemQuery, [
+    const [itemResult] = await pool.query(updateItemQuery, [
       ItemID,
       AllocatedQty,
       UnitCost,
@@ -373,7 +307,7 @@ router.put("/editpurchaseorderitems", async (req, res) => {
         .json({ message: "Purchase order item not found or already updated." });
     }
 
-    await con.query(updateTotalPriceQuery, [PurchaseOrderID, PurchaseOrderID]);
+    await pool.query(updateTotalPriceQuery, [PurchaseOrderID, PurchaseOrderID]);
 
     res
       .status(200)
@@ -433,7 +367,7 @@ router.delete("/deleteItem/:PurchaseOrderItemID", async (req, res) => {
   `;
 
   try {
-    const [rows] = await con.query(getPurchaseOrderIDQuery, [
+    const [rows] = await pool.query(getPurchaseOrderIDQuery, [
       PurchaseOrderItemID,
     ]);
     if (rows.length === 0) {
@@ -442,12 +376,12 @@ router.delete("/deleteItem/:PurchaseOrderItemID", async (req, res) => {
 
     const { PurchaseOrderID } = rows[0];
 
-    const [deleteResult] = await con.query(deleteQuery, [PurchaseOrderItemID]);
+    const [deleteResult] = await pool.query(deleteQuery, [PurchaseOrderItemID]);
     if (deleteResult.affectedRows === 0) {
       return res.status(404).json({ message: "Item not found" });
     }
 
-    await con.query(updateTotalPriceQuery, [PurchaseOrderID, PurchaseOrderID]);
+    await pool.query(updateTotalPriceQuery, [PurchaseOrderID, PurchaseOrderID]);
 
     res.status(200).json({
       message: "Item deleted successfully!",
