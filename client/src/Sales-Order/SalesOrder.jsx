@@ -26,7 +26,7 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
     const fetchCustomerData = async () => {
       try {
         const res = await axios.get(
-          "https://order-management-pqn2.onrender.com/customer/getCustomerData"
+          "http://localhost:8000/customer/getCustomerData"
         );
         const activeCustomers = res.data.filter(
           (customer) => customer.Status === 1
@@ -89,14 +89,14 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
     try {
       if (existingOrder && existingOrder.CustomerSalesOrderID) {
         await axios.put(
-          `https://order-management-pqn2.onrender.com/customerpo/updateCustomerPo/${formData.CustomerSalesOrderID}`,
+          `http://localhost:8000/customerpo/updateCustomerPo/${formData.CustomerSalesOrderID}`,
           data
         );
 
         toast.success("Sales Order updated successfully!");
       } else {
         await axios.post(
-          "https://order-management-pqn2.onrender.com/customerpo/insertCustomerPo",
+          "http://localhost:8000/customerpo/insertCustomerPo",
           data
         );
         toast.success("Sales Order created successfully!");
