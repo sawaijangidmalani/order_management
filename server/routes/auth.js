@@ -69,43 +69,77 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// router.post("/signup", async (req, res) => {
+//   const { email, password, name, username } = req.body;
+
+//   if (!email || !password || !name || !username) {
+//     return res.status(400).json({ message: "All fields are required" });
+//   }
+
+//   const checkEmailSql = "SELECT * FROM user WHERE email = ?";
+//   const insertUserSql =
+//     "INSERT INTO user (Username, name, email, passwordhash, isadmin, status) VALUES (?, ?, ?, ?, ?, ?)";
+
+//   try {
+//     const [existingUsers] = await pool.query(checkEmailSql, [email]);
+
+//     if (existingUsers.length > 0) {
+//       return res.status(409).json({ message: "Email already exists" });
+//     }
+
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     await pool.query(insertUserSql, [
+//       username,
+//       name,
+//       email,
+//       hashedPassword,
+//       0,
+//       1,
+//     ]);
+
+//     res
+//       .status(201)
+//       .json({ success: true, message: "User registered successfully" });
+//   } catch (err) {
+//     console.error("Error processing signup request:", err);
+//     res.status(500).json({ error: "Something went wrong" });
+//   }
+// });
+
 router.post("/signup", async (req, res) => {
+  console.log("Signup route hit! Request body:", req.body);
+
   const { email, password, name, username } = req.body;
 
   if (!email || !password || !name || !username) {
+    console.error("❌ Missing fields in request");
     return res.status(400).json({ message: "All fields are required" });
   }
 
-  const checkEmailSql = "SELECT * FROM user WHERE email = ?";
-  const insertUserSql =
-    "INSERT INTO user (Username, name, email, passwordhash, isadmin, status) VALUES (?, ?, ?, ?, ?, ?)";
-
   try {
-    const [existingUsers] = await pool.query(checkEmailSql, [email]);
+    const [existingUsers] = await pool.query("SELECT * FROM user WHERE email = ?", [email]);
+    console.log("Existing users:", existingUsers);
 
     if (existingUsers.length > 0) {
       return res.status(409).json({ message: "Email already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    console.log("Hashed Password:", hashedPassword);
 
-    await pool.query(insertUserSql, [
-      username,
-      name,
-      email,
-      hashedPassword,
-      0,
-      1,
-    ]);
+    await pool.query(
+      "INSERT INTO user (Username, name, email, passwordhash, isadmin, status) VALUES (?, ?, ?, ?, ?, ?)",
+      [username, name, email, hashedPassword, 0, 1]
+    );
 
-    res
-      .status(201)
-      .json({ success: true, message: "User registered successfully" });
+    res.status(201).json({ success: true, message: "User registered successfully" });
   } catch (err) {
-    console.error("Error processing signup request:", err);
-    res.status(500).json({ error: "Something went wrong" });
+    console.error("❌ Error processing signup request:", err);
+    res.status(500).json({ error: err.message }); // Send full error response
   }
 });
+
 
 router.post("/forgotPassword", async (req, res) => {
   const { email } = req.body;
