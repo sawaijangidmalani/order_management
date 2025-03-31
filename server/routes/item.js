@@ -3,6 +3,7 @@ import pool from "../utils/db.js";
 
 const router = express.Router();
 
+
 const sendErrorResponse = (res, statusCode, message, details = null) => {
   res.status(statusCode).json({ error: true, message, details });
 };
