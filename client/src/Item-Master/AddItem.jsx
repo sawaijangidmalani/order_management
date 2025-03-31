@@ -51,7 +51,6 @@ const AddItem = ({ editItem, closeModal }) => {
         "https://order-management-tgh3.onrender.com/item/getItemUnits"
       );
       console.log("Fetched Item Units:", response.data);
-
       setItemUnits(response.data);
     } catch (err) {
       console.error("Error fetching item units:", err);

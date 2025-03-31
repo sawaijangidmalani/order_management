@@ -181,6 +181,67 @@ router.delete("/deletePurchaseOrder", async (req, res) => {
 });
 
 // Add Purchase Order Item
+// router.post("/addpurchaseorderitems", async (req, res) => {
+//   const {
+//     ItemID,
+//     AllocatedQty,
+//     UnitCost,
+//     PurchasePrice,
+//     InvoiceNumber,
+//     InvoiceDate,
+//     PurchaseOrderID,
+//   } = req.body;
+
+//   if (!PurchaseOrderID || !ItemID) {
+//     return res.status(400).json({ message: "Missing required fields." });
+//   }
+
+//   if (
+//     isNaN(parseFloat(AllocatedQty)) ||
+//     isNaN(parseFloat(UnitCost)) ||
+//     isNaN(parseFloat(PurchasePrice)) ||
+//     !InvoiceNumber ||
+//     !InvoiceDate
+//   ) {
+//     return res.status(400).json({ message: "Invalid or missing fields." });
+//   }
+
+//   const insertSql = `
+//     INSERT INTO purchaseorderitems
+//     (ItemID, AllocatedQty, UnitCost, PurchasePrice, InvoiceNumber, InvoiceDate, PurchaseOrderID) 
+//     VALUES (?, ?, ?, ?, ?, ?, ?)
+//   `;
+
+//   const updateSql = `
+//     UPDATE purchaseorders
+//     SET PurchaseTotalPrice = (
+//       SELECT COALESCE(SUM(PurchasePrice), 0)
+//       FROM purchaseorderitems
+//       WHERE PurchaseOrderID = ?
+//     )
+//     WHERE PurchaseOrderID = ?
+//   `;
+
+//   try {
+//     await con.query(insertSql, [
+//       ItemID,
+//       AllocatedQty,
+//       UnitCost,
+//       PurchasePrice,
+//       InvoiceNumber,
+//       InvoiceDate,
+//       PurchaseOrderID,
+//     ]);
+
+//     await con.query(updateSql, [PurchaseOrderID, PurchaseOrderID]);
+
+//     res.status(201).json({ success: true });
+//   } catch (error) {
+//     console.error("Database error:", error);
+//     res.status(500).json({ success: false });
+//   }
+// });
+
 router.post("/addpurchaseorderitems", async (req, res) => {
   const {
     ItemID,
@@ -223,7 +284,10 @@ router.post("/addpurchaseorderitems", async (req, res) => {
   `;
 
   try {
-    await con.query(insertSql, [
+    const db = con.promise(); // Convert connection to promise-based
+
+    // Insert Query
+    await db.query(insertSql, [
       ItemID,
       AllocatedQty,
       UnitCost,
@@ -233,14 +297,16 @@ router.post("/addpurchaseorderitems", async (req, res) => {
       PurchaseOrderID,
     ]);
 
-    await con.query(updateSql, [PurchaseOrderID, PurchaseOrderID]);
+    // Update Query
+    await db.query(updateSql, [PurchaseOrderID, PurchaseOrderID]);
 
-    res.status(201).json({ success: true });
+    res.status(201).json({ success: true, message: "Item added successfully!" });
   } catch (error) {
     console.error("Database error:", error);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
+
 
 // Edit Purchase Order Item
 router.put("/editpurchaseorderitems", async (req, res) => {
