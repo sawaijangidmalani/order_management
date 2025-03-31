@@ -328,7 +328,7 @@ FROM purchaseorderitems si
 INNER JOIN items i ON si.ItemID = i.ItemID
 
   `;
-  con
+  pool
     .query(query)
     .then(([rows, fields]) => {
       res.status(200).json({ data: rows });
