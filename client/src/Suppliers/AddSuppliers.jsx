@@ -50,9 +50,7 @@ function AddSuppliers({ closeModal, editingSuppliers }) {
         closeModal();
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
@@ -65,11 +63,26 @@ function AddSuppliers({ closeModal, editingSuppliers }) {
     });
   };
 
-  const handleSubmit = (e) => {
+  const checkSupplierExists = async (name, email) => {
+    try {
+      const response = await axios.get("https://order-management-tgh3.onrender.com/supplier/checkDuplicate", {
+        params: { name, email }
+      });
+      return {
+        nameExists: response.data.nameExists,
+        emailExists: response.data.emailExists
+      };
+    } catch (error) {
+      console.error("Error checking supplier:", error);
+      return { nameExists: false, emailExists: false };
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.Email || !formData.Name || !formData.Phone) {
-      toast.error("Please fill out all required fields.");
+      toast.warn("Please fill out all required fields.");
       return;
     }
 
@@ -79,25 +92,43 @@ function AddSuppliers({ closeModal, editingSuppliers }) {
       ? "https://order-management-tgh3.onrender.com/supplier/updateSupplier"
       : "https://order-management-tgh3.onrender.com/supplier/add_supplier";
 
-    axios
-      .post(apiUrl, formData)
-      .then((response) => {
-        toast.success(
-          editingSuppliers
-            ? "Supplier updated successfully!"
-            : "Supplier saved successfully!"
-        );
+    try {
+      if (!editingSuppliers) {
+        const { nameExists, emailExists } = await checkSupplierExists(formData.Name, formData.Email);
+        
+        if (nameExists && emailExists) {
+          toast.error("A supplier with this name and email already exists!");
+          setLoading(false);
+          return;
+        } else if (nameExists) {
+          toast.error("A supplier with this name already exists!");
+          setLoading(false);
+          return;
+        } else if (emailExists) {
+          toast.error("A supplier with this email already exists!");
+          setLoading(false);
+          return;
+        }
+      }
 
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      })
-      .catch((error) => {
-        toast.error("Something went wrong. Try again.");
-        console.error("Error:", error);
-      });
+      const response = await axios.post(apiUrl, formData);
+      toast.success(
+        editingSuppliers
+          ? "Supplier updated successfully!"
+          : "Supplier saved successfully!"
+      );
 
-    setShowForm(false);
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (error) {
+      toast.error("Something went wrong. Try again.");
+      console.error("Error:", error);
+    } finally {
+      setLoading(false);
+      setShowForm(false);
+      closeModal();
+    }
   };
 
   const handleCancel = (e) => {
@@ -175,7 +206,6 @@ function AddSuppliers({ closeModal, editingSuppliers }) {
 
                 <label className="customer-form__label">
                   Area:
-                  {/* <span style={{ color: "red" }}>*</span> */}
                   <input
                     type="text"
                     name="Area"

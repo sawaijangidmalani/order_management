@@ -63,6 +63,24 @@ function AddCustomer({ closeModal, editingCustomer }) {
     });
   };
 
+  const checkCustomerExists = async (name, email) => {
+    try {
+      const response = await axios.get(
+        "https://order-management-tgh3.onrender.com/customer/checkDuplicate",
+        {
+          params: { name, email },
+        }
+      );
+      return {
+        nameExists: response.data.nameExists,
+        emailExists: response.data.emailExists,
+      };
+    } catch (error) {
+      console.error("Error checking customer:", error);
+      return { nameExists: false, emailExists: false };
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -78,6 +96,27 @@ function AddCustomer({ closeModal, editingCustomer }) {
       : "https://order-management-tgh3.onrender.com/customer/add_customer";
 
     try {
+      if (!editingCustomer) {
+        const { nameExists, emailExists } = await checkCustomerExists(
+          formData.Name,
+          formData.Email
+        );
+
+        if (nameExists && emailExists) {
+          toast.error("A customer with this name and email already exists!");
+          setLoading(false);
+          return;
+        } else if (nameExists) {
+          toast.error("A customer with this name already exists!");
+          setLoading(false);
+          return;
+        } else if (emailExists) {
+          toast.error("A customer with this email already exists!");
+          setLoading(false);
+          return;
+        }
+      }
+
       const response = await axios.post(apiUrl, formData);
       toast.success(
         editingCustomer
@@ -93,8 +132,10 @@ function AddCustomer({ closeModal, editingCustomer }) {
       console.error("Error:", error);
     } finally {
       setLoading(false);
-      setShowForm(false);
-      closeModal();
+      if (!editingCustomer) {
+        setShowForm(false);
+        closeModal();
+      }
     }
   };
 

@@ -3,28 +3,77 @@ import pool from "../utils/db.js";
 
 const router = express.Router();
 
-// Add a new supplier
-router.post("/add_supplier", async (req, res) => {
-  const formData = req.body;
-  const sql = `
-    INSERT INTO suppliers 
-    (Name, Email, Phone, Address, Area, City, State, Status, GST, ProviderID) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-  const values = [
-    formData.Name,
-    formData.Email,
-    formData.Phone,
-    formData.Address,
-    formData.Area,
-    formData.City,
-    formData.State,
-    formData.Status,
-    formData.GST,
-    formData.ProviderID || 1,
-  ];
+router.get("/checkDuplicate", async (req, res) => {
+  const { name, email } = req.query;
 
   try {
+    const [nameResult] = await pool.query(
+      "SELECT COUNT(*) as count FROM suppliers WHERE Name = ?",
+      [name]
+    );
+    const [emailResult] = await pool.query(
+      "SELECT COUNT(*) as count FROM suppliers WHERE Email = ?",
+      [email]
+    );
+
+    res.json({
+      nameExists: nameResult[0].count > 0,
+      emailExists: emailResult[0].count > 0,
+    });
+  } catch (err) {
+    console.error("Error checking duplicates:", err.stack);
+    res.status(500).json({
+      nameExists: false,
+      emailExists: false,
+      error: "Error checking duplicates",
+    });
+  }
+});
+
+router.post("/add_supplier", async (req, res) => {
+  const formData = req.body;
+
+  try {
+    const [nameResult] = await pool.query(
+      "SELECT COUNT(*) as count FROM suppliers WHERE Name = ?",
+      [formData.Name]
+    );
+    const [emailResult] = await pool.query(
+      "SELECT COUNT(*) as count FROM suppliers WHERE Email = ?",
+      [formData.Email]
+    );
+
+    if (nameResult[0].count > 0) {
+      return res.status(400).json({
+        added: false,
+        message: "A supplier with this name already exists",
+      });
+    }
+    if (emailResult[0].count > 0) {
+      return res.status(400).json({
+        added: false,
+        message: "A supplier with this email already exists",
+      });
+    }
+
+    const sql = `
+      INSERT INTO suppliers 
+      (Name, Email, Phone, Address, Area, City, State, Status, GST, ProviderID) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    const values = [
+      formData.Name,
+      formData.Email,
+      formData.Phone,
+      formData.Address,
+      formData.Area,
+      formData.City,
+      formData.State,
+      formData.Status,
+      formData.GST,
+      formData.ProviderID || 1,
+    ];
+
     const [result] = await pool.query(sql, values);
     res.json({ added: true, data: formData });
   } catch (err) {
@@ -33,7 +82,6 @@ router.post("/add_supplier", async (req, res) => {
   }
 });
 
-// Route to get all supplier data
 router.get("/getSupplierData", async (req, res) => {
   const sql = "SELECT * FROM suppliers";
   try {
@@ -45,7 +93,6 @@ router.get("/getSupplierData", async (req, res) => {
   }
 });
 
-// Route to delete a supplier by email
 router.delete("/deleteSupplier", async (req, res) => {
   const { email } = req.body;
   const sql = "DELETE FROM suppliers WHERE Email = ?";
@@ -68,13 +115,26 @@ router.delete("/deleteSupplier", async (req, res) => {
 router.post("/updateSupplier", async (req, res) => {
   const { Email, Name, Phone, Area, Address, City, State, Status, GST } =
     req.body;
-  const sql = `
-    UPDATE suppliers
-    SET Name = ?, Phone = ?, Area = ?, Address = ?, City = ?, State = ?, Status = ?, GST = ?
-    WHERE Email = ?
-  `;
 
   try {
+    const [nameResult] = await pool.query(
+      "SELECT COUNT(*) as count FROM suppliers WHERE Name = ? AND Email != ?",
+      [Name, Email]
+    );
+
+    if (nameResult[0].count > 0) {
+      return res.status(400).json({
+        status: false,
+        message: "Another supplier with this name already exists",
+      });
+    }
+
+    const sql = `
+      UPDATE suppliers
+      SET Name = ?, Phone = ?, Area = ?, Address = ?, City = ?, State = ?, Status = ?, GST = ?
+      WHERE Email = ?
+    `;
+
     const [result] = await pool.query(sql, [
       Name,
       Phone,

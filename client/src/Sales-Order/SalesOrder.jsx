@@ -49,7 +49,6 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
           ? existingOrder.SalesDate.slice(0, 10)
           : "",
         Status: existingOrder.Status,
-        // SalesTotalPrice: existingOrder.SalesTotalPrice,
       });
       setSalesOrderItems(existingOrder.items || []);
     } else {
@@ -73,7 +72,6 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
       (acc, item) => acc + item.qty * item.unitCost,
       0
     );
-    // setFormData((prev) => ({ ...prev, SalesTotalPrice: total }));
   };
 
   const handleSubmit = async (event) => {
@@ -89,10 +87,9 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
     try {
       if (existingOrder && existingOrder.CustomerSalesOrderID) {
         await axios.put(
-          `https://order-management-tgh3.onrender.com/customerpo/updateCustomerPo/${formData.CustomerSalesOrderID}`,
+          `https://order-management-tgh3.onrender.com/customerpo/updateCustomerPo/${existingOrder.CustomerSalesOrderID}`,
           data
         );
-
         toast.success("Sales Order updated successfully!");
       } else {
         await axios.post(
@@ -100,7 +97,6 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
           data
         );
         toast.success("Sales Order created successfully!");
-        setLoading(false);
       }
       window.location.reload();
       onClose();
@@ -110,6 +106,11 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
         "Error handling sales order:",
         err.response ? err.response.data : err.message
       );
+      if (err.response && err.response.status === 409) {
+        toast.error("A sales order with this Customer PO already exists.");
+      } else {
+        toast.error("An error occurred while saving the sales order.");
+      }
     }
     setLoading(false);
   };
@@ -137,7 +138,6 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
       SalesOrderNumber: "",
       SalesDate: "",
       Status: "",
-      // SalesTotalPrice: 0.0,
     });
     setSalesOrderItems([]);
   };
@@ -226,10 +226,6 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
               </select>
             </label>
 
-            {/* <button type="button" onClick={handleAdd} className="add-item">
-              Add Item
-            </button> */}
-
             {selectedSaleId ? (
               <button type="button" onClick={handleAdd} className="add-item">
                 Add Item
@@ -238,13 +234,6 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
               ""
             )}
           </form>
-
-          {/* <AddSalesItem
-            selectedSaleId={selectedSaleId}
-            items={salesOrderItems}
-            handleDeleteItem={handleDeleteItem}
-            availableQTY={selectedItem ? selectedItem.Stock : 0}
-          /> */}
 
           {selectedSaleId ? (
             <AddSalesItem
@@ -258,19 +247,10 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
           )}
 
           <div className="customer-form__button-container">
-            {/* <button
-              type="submit"
-              className="customer-form__button"
-              onClick={handleSubmit}
-            >
-              Save
-            </button> */}
-
             <button
               type="submit"
               className="customer-form__button"
               onClick={handleSubmit}
-              // disabled={loading}
             >
               {loading ? "Saving..." : "Save"}
             </button>

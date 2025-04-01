@@ -14,15 +14,31 @@ router.post("/insertCustomerPo", async (req, res) => {
   if (isNaN(salesDateFormat.getTime())) {
     return res.status(400).send("SalesDate must be a valid date.");
   }
-
-  const sql = `
-    INSERT INTO customersalesorder 
-    (CustomerID, ProviderID, SalesOrderNumber, SalesDate, Status) 
-    VALUES (?, ?, ?, ?, ?)
+  ;
+  const checkDuplicateSql = `
+    SELECT COUNT(*) as count 
+    FROM customersalesorder 
+    WHERE SalesOrderNumber = ?
   `;
 
   try {
-    const [result] = await con.query(sql, [
+    const [duplicateResult] = await con.query(checkDuplicateSql, [
+      SalesOrderNumber,
+    ]);
+
+    if (duplicateResult[0].count > 0) {
+      return res
+        .status(409)
+        .send("A sales order with this Customer PO already exists.");
+    }
+
+    const insertSql = `
+      INSERT INTO customersalesorder 
+      (CustomerID, ProviderID, SalesOrderNumber, SalesDate, Status) 
+      VALUES (?, ?, ?, ?, ?)
+    `;
+
+    const [result] = await con.query(insertSql, [
       CustomerID,
       1,
       SalesOrderNumber,
@@ -62,11 +78,9 @@ router.get("/getCustomerPo", async (req, res) => {
   }
 });
 
-
 router.put("/updateCustomerPo/:CustomerSalesOrderID", async (req, res) => {
   const { CustomerSalesOrderID } = req.params;
-  const { CustomerID, ProviderID, SalesDate, Status, SalesTotalPrice, Items } =
-    req.body;
+  const { CustomerID, ProviderID, SalesDate, Status, Items } = req.body;
 
   const connection = await con.getConnection();
   try {
@@ -74,7 +88,7 @@ router.put("/updateCustomerPo/:CustomerSalesOrderID", async (req, res) => {
 
     const updateSalesOrderQuery = `
       UPDATE customersalesorder
-      SET CustomerID = ?, ProviderID = ?, SalesDate = ?, Status = ?, SalesTotalPrice = ?
+      SET CustomerID = ?, ProviderID = ?, SalesDate = ?, Status = ?
       WHERE CustomerSalesOrderID = ?
     `;
     const [salesOrderResult] = await connection.execute(updateSalesOrderQuery, [
@@ -82,7 +96,6 @@ router.put("/updateCustomerPo/:CustomerSalesOrderID", async (req, res) => {
       ProviderID,
       SalesDate,
       Status,
-      SalesTotalPrice,
       CustomerSalesOrderID,
     ]);
 
