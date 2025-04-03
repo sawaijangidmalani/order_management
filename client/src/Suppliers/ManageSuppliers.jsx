@@ -232,7 +232,9 @@ function ManageSuppliers() {
                   <td>{supplier.Name}</td>
                   <td>{supplier.Email}</td>
                   <td>{supplier.Phone}</td>
-                  <td>{supplier.Area}</td>
+                  <td>
+                    {supplier.Area}-{supplier.City}
+                  </td>
                   <td>{supplier.Status === 1 ? "Active" : "Inactive"}</td>
                   <td>
                     <div className="buttons-group">

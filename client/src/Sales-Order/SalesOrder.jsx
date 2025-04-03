@@ -11,7 +11,6 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
   const [customerData, setCustomerData] = useState([]);
   const [salesOrderItems, setSalesOrderItems] = useState([]);
   const [addClick, setAddClick] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -42,17 +41,15 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
   useEffect(() => {
     if (existingOrder) {
       setFormData({
-        CustomerID: existingOrder.CustomerID,
+        CustomerID: existingOrder.CustomerID ?? "",
         ProviderID: "1",
-        SalesOrderNumber: existingOrder.SalesOrderNumber,
+        SalesOrderNumber: existingOrder.SalesOrderNumber ?? "",
         SalesDate: existingOrder.SalesDate
           ? existingOrder.SalesDate.slice(0, 10)
           : "",
-        Status: existingOrder.Status,
+        Status: existingOrder.Status ?? "",
       });
       setSalesOrderItems(existingOrder.items || []);
-    } else {
-      resetForm();
     }
   }, [existingOrder]);
 
@@ -62,73 +59,101 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
   };
 
   const handleAddSaleItem = (item) => {
-    const updatedItems = [...salesOrderItems, item];
-    setSalesOrderItems(updatedItems);
-    calculateTotalPrice(updatedItems);
-  };
-
-  const calculateTotalPrice = (items) => {
-    const total = items.reduce(
-      (acc, item) => acc + item.qty * item.unitCost,
-      0
-    );
+    setSalesOrderItems((prevItems) => {
+      const updatedItems = [
+        ...prevItems,
+        {
+          ...item,
+          CustomerSalesOrderItemID: item.CustomerSalesOrderItemID ?? null,
+          CustomerSalesOrderID: item.CustomerSalesOrderID ?? selectedSaleId,
+          ItemID: item.ItemID ?? null,
+          ItemName: item.ItemName ?? "",
+          AllocatedQty: item.AllocatedQty ?? 0,
+          UnitCost: item.UnitCost ?? 0,
+          SalesPrice: item.SalesPrice ?? 0,
+          Tax: item.Tax ?? 0,
+        },
+      ];
+      return updatedItems;
+    });
+    setAddClick(false);
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
-    const data = {
-      ...formData,
-      Items: salesOrderItems,
+
+    const cleanedFormData = {
+      CustomerID: formData.CustomerID || null,
+      ProviderID: formData.ProviderID || "1",
+      SalesOrderNumber: formData.SalesOrderNumber || null,
+      SalesDate: formData.SalesDate || null,
+      Status: formData.Status || null,
     };
 
-    console.log(data);
+    const cleanedItems = salesOrderItems.map((item) => ({
+      CustomerSalesOrderItemID: item.CustomerSalesOrderItemID ?? null,
+      CustomerSalesOrderID: item.CustomerSalesOrderID ?? selectedSaleId,
+      ItemID: item.ItemID ?? null,
+      ItemName: item.ItemName ?? "",
+      AllocatedQty: item.AllocatedQty ?? 0,
+      UnitCost: item.UnitCost ?? 0,
+      SalesPrice: item.SalesPrice ?? 0,
+      Tax: item.Tax ?? 0,
+    }));
+
+    const data = {
+      ...cleanedFormData,
+      Items: cleanedItems,
+    };
+
+    console.log("Submitting data:", JSON.stringify(data, null, 2));
 
     try {
       if (existingOrder && existingOrder.CustomerSalesOrderID) {
-        await axios.put(
-          `https://order-management-tgh3.onrender.com/customerpo/updateCustomerPo/${existingOrder.CustomerSalesOrderID}`,
-          data
-        );
+        const url = `https://order-management-tgh3.onrender.com/customerpo/updateCustomerPo/${existingOrder.CustomerSalesOrderID}`;
+        const response = await axios.put(url, data);
+        console.log("Response:", response.data);
         toast.success("Sales Order updated successfully!");
       } else {
-        await axios.post(
+        const response = await axios.post(
           "https://order-management-tgh3.onrender.com/customerpo/insertCustomerPo",
           data
         );
+        console.log("Response:", response.data);
         toast.success("Sales Order created successfully!");
       }
-      window.location.reload();
       onClose();
       resetForm();
     } catch (err) {
+      console.error("Full error details:", err);
       console.error(
-        "Error handling sales order:",
-        err.response ? err.response.data : err.message
+        "Error response:",
+        err.response ? err.response.data : "No response data"
       );
       if (err.response && err.response.status === 409) {
-        toast.error("A sales order with this Customer PO already exists.");
+        toast.error("This Customer is Already Added!");
       } else {
-        toast.error("An error occurred while saving the sales order.");
+        toast.error(
+          "Error saving sals order: " +
+            (err.response?.data?.message || err.message)
+        );
       }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleDeleteItem = (index) => {
-    const updatedItems = salesOrderItems.filter((_, i) => i !== index);
-    setSalesOrderItems(updatedItems);
-    calculateTotalPrice(updatedItems);
+    setSalesOrderItems((prevItems) => prevItems.filter((_, i) => i !== index));
   };
 
   const handleAdd = () => {
     setAddClick(true);
-    resetForm();
   };
 
   const handleCancel = () => {
     setAddClick(false);
-    resetForm();
   };
 
   const resetForm = () => {
@@ -226,24 +251,19 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
               </select>
             </label>
 
-            {selectedSaleId ? (
+            {selectedSaleId && (
               <button type="button" onClick={handleAdd} className="add-item">
                 Add Item
               </button>
-            ) : (
-              ""
             )}
           </form>
 
-          {selectedSaleId ? (
+          {selectedSaleId && (
             <AddSalesItem
               selectedSaleId={selectedSaleId}
               items={salesOrderItems}
               handleDeleteItem={handleDeleteItem}
-              availableQTY={selectedItem ? selectedItem.Stock : 0}
             />
-          ) : (
-            ""
           )}
 
           <div className="customer-form__button-container">
@@ -251,8 +271,9 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
               type="submit"
               className="customer-form__button"
               onClick={handleSubmit}
+              disabled={loading}
             >
-              {loading ? "Saving..." : "Save"}
+              {loading ? "Saving..." : existingOrder ? "Update" : "Save"}
             </button>
             <button
               type="button"

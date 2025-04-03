@@ -17,11 +17,11 @@ const AddorEditCustomer = ({
   selectedSaleId,
   onClose,
   itemToEdit,
-  availableQTY,
+  onPurchaseData,
 }) => {
   const [products, setProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [availableQty, setAvailableQty] = useState(availableQTY);
+  const [availableQty, setAvailableQty] = useState(0);
   const [allocatedQty, setAllocatedQty] = useState("");
   const [remainingQty, setRemainingQty] = useState("");
   const [unitCost, setUnitCost] = useState("");
@@ -106,13 +106,12 @@ const AddorEditCustomer = ({
       CustomerSalesOrderItemID: itemToEdit?.CustomerSalesOrderItemID || null,
       CustomerSalesOrderID: selectedSaleId,
       ItemID: selectedProduct?.ItemID || null,
+      ItemName: selectedProduct?.Name || "",
       AllocatedQty: parseFloat(allocatedQty) || 0,
       UnitCost: parseFloat(unitCost) || 0,
       SalesPrice: parseFloat(salesPrice) || 0,
       Tax: parseFloat(tax) || 0,
     };
-
-    console.log("Item to Edit:", itemToEdit);
 
     try {
       let response;
@@ -133,6 +132,7 @@ const AddorEditCustomer = ({
           ? "Item updated successfully!"
           : "Item added successfully!";
         toast.success(successMessage);
+        onPurchaseData(salesOrderItem); // Pass the new/updated item back to SalesOrder
       } else {
         toast.error("Failed to save item.");
       }
@@ -148,8 +148,9 @@ const AddorEditCustomer = ({
     } catch (error) {
       console.error("Error submitting sales order item:", error);
       toast.error("Error: " + error.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -259,9 +260,6 @@ const AddorEditCustomer = ({
           </label>
 
           <div className="customer-form__button-container">
-            {/* <button type="submit" className="customer-form__button">
-              Save
-            </button> */}
             <button
               type="submit"
               className="customer-form__button"

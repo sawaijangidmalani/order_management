@@ -43,14 +43,10 @@ function AddSalesItem({ selectedSaleId }) {
       const unitCost = parseFloat(item.UnitCost) || 0;
       const tax = parseFloat(item.Tax) || 0;
       const allocatedQty = parseFloat(item.AllocatedQty) || 0;
-
-      const itemTotal = allocatedQty * (unitCost + (unitCost * tax) / 100);
-      return acc + itemTotal;
+      return acc + allocatedQty * (unitCost + (unitCost * tax) / 100);
     }, 0);
-
     setTotal(newTotal.toFixed(2));
   };
-
 
   const handleDelete = async (CustomerSalesOrderItemID) => {
     try {
@@ -64,7 +60,6 @@ function AddSalesItem({ selectedSaleId }) {
       toast.error("Error deleting item! Please try again.");
     }
   };
-  
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -94,7 +89,7 @@ function AddSalesItem({ selectedSaleId }) {
         </thead>
         <tbody>
           {paginatedData.map((item, index) => (
-            <tr key={index}>
+            <tr key={item.CustomerSalesOrderItemID || index}>
               <td>{item.ItemName}</td>
               <td>{item.AllocatedQty}</td>
               <td>{item.UnitCost}</td>
@@ -117,7 +112,6 @@ function AddSalesItem({ selectedSaleId }) {
                       <BiEdit />
                     </button>
                   </Tooltip>
-
                   <Tooltip
                     title="Delete"
                     overlayInnerStyle={{
@@ -129,7 +123,9 @@ function AddSalesItem({ selectedSaleId }) {
                     <Popconfirm
                       placement="topLeft"
                       description="Are you sure to delete this item?"
-                      onConfirm={() => handleDelete(item.CustomerSalesOrderItemID)}
+                      onConfirm={() =>
+                        handleDelete(item.CustomerSalesOrderItemID)
+                      }
                       okText="Delete"
                     >
                       <button className="btns2">

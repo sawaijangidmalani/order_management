@@ -3,7 +3,6 @@ import pool from "../utils/db.js";
 
 const router = express.Router();
 
-// POST Insert Purchase Order
 router.post("/insertpo", async (req, res) => {
   const {
     CustomerID,
@@ -28,18 +27,28 @@ router.post("/insertpo", async (req, res) => {
       .json({ error: true, message: "Missing or invalid data" });
   }
 
-  const insertPOQuery = `
-    INSERT INTO purchaseorders 
-    (CustomerSalesOrderID, CustomerID, ProviderID, PurchaseOrderNumber, PurchaseDate, Status, PurchaseTotalPrice)
-    VALUES (?, ?, ?, ?, ?, ?, ?);
-  `;
-
-  const insertItemsQuery = `
-    INSERT INTO purchaseorderitems (PurchaseOrderID, ItemID, Quantity, Price)
-    VALUES ?;
-  `;
-
   try {
+    const checkDuplicateQuery = `SELECT COUNT(*) AS count FROM purchaseorders WHERE CustomerID = ?`;
+    const [duplicateResult] = await pool.query(checkDuplicateQuery, [
+      CustomerID,
+    ]);
+
+    const existingPOCount = duplicateResult[0]?.count || 0;
+
+    if (existingPOCount > 0) {
+      // console.log("PO already exists for CustomerID:", CustomerID);
+      return res.status(409).json({
+        error: true,
+        message: "A purchase order for this customer already exists.",
+      });
+    }
+
+    const insertPOQuery = `
+      INSERT INTO purchaseorders 
+      (CustomerSalesOrderID, CustomerID, ProviderID, PurchaseOrderNumber, PurchaseDate, Status, PurchaseTotalPrice)
+      VALUES (?, ?, ?, ?, ?, ?, ?);
+    `;
+
     await pool.query("START TRANSACTION");
 
     const [poResult] = await pool.query(insertPOQuery, [
@@ -55,6 +64,10 @@ router.post("/insertpo", async (req, res) => {
     const PurchaseOrderID = poResult.insertId;
 
     if (items && items.length > 0) {
+      const insertItemsQuery = `
+        INSERT INTO purchaseorderitems (PurchaseOrderID, ItemID, Quantity, Price)
+        VALUES ?;
+      `;
       const itemValues = items.map((item) => [
         PurchaseOrderID,
         item.ItemID,
@@ -77,7 +90,6 @@ router.post("/insertpo", async (req, res) => {
   }
 });
 
-// GET endpoint to retrieve purchase orders
 router.get("/getpo", async (req, res) => {
   const sql = `
 SELECT
@@ -101,7 +113,6 @@ GROUP BY po.PurchaseOrderID;
   }
 });
 
-// PUT Edit Purchase Order
 router.put("/updatepo/:purchaseOrderNumber", async (req, res) => {
   const { purchaseOrderNumber } = req.params;
   const { CustomerID, CustomerSalesOrderID, PurchaseDate, Status } = req.body;
@@ -180,7 +191,6 @@ router.delete("/deletePurchaseOrder", async (req, res) => {
   }
 });
 
-// Add Purchase Order Item
 router.post("/addpurchaseorderitems", async (req, res) => {
   const {
     ItemID,
@@ -242,7 +252,6 @@ router.post("/addpurchaseorderitems", async (req, res) => {
   }
 });
 
-// Edit Purchase Order Item
 router.put("/editpurchaseorderitems", async (req, res) => {
   const {
     PurchaseOrderItemID,

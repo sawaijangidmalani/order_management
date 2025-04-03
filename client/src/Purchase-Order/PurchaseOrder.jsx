@@ -108,25 +108,37 @@ const PurchaseOrder = ({
           `https://order-management-tgh3.onrender.com/po/updatepo/${editData.PurchaseOrderID}`,
           data
         );
-
-        if (response.status === 200 || response.status === 201) {
-          toast.success("Purchase order updated successfully");
-          setLoading(false);
-        }
       } else {
         response = await axios.post("https://order-management-tgh3.onrender.com/po/insertpo", data);
-
-        if (response.status === 200 || response.status === 201) {
-          toast.success("Purchase order Saved successfully");
-        }
       }
+
+      if (response.status === 200 || response.status === 201) {
+        toast.success("Purchase order saved successfully");
+      }
+
       window.location.reload();
       onCloses();
       resetForm();
+
+      return;
     } catch (error) {
       console.error("Error inserting/updating purchase order:", error);
+
+      if (error.response) {
+        if (error.response.status === 409) {
+          toast.error("This customer already exists.");
+        } else {
+          toast.error(
+            error.response.data.message ||
+              "An error occurred while saving the purchase order."
+          );
+        }
+      } else {
+        // toast.error("An unexpected error occurred.");
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -189,7 +201,6 @@ const PurchaseOrder = ({
           selectedPurchaseId={selectedPurchaseId}
           onPurchaseData={handleAddItem}
           customesId={customesId}
-          
         />
       ) : (
         <>
@@ -305,13 +316,6 @@ const PurchaseOrder = ({
             )}
           </form>
 
-          {/* <AddPurchaseItem
-            selectedPurchaseId={selectedPurchaseId}
-            items={purchaseOrderItems}
-            handleDeleteItem={handleDeleteItem}
-            availableQTY={selectedItem ? selectedItem.Stock : 0}
-          /> */}
-
           {selectedPurchaseId ? (
             <AddPurchaseItem
               selectedPurchaseId={selectedPurchaseId}
@@ -324,14 +328,6 @@ const PurchaseOrder = ({
           )}
 
           <div className="customer-form__button-container">
-            {/* <button
-              type="submit"
-              className="customer-form__button"
-              onClick={handleSubmit}
-            >
-              Save
-            </button> */}
-
             <button
               type="submit"
               className="customer-form__button"

@@ -159,14 +159,6 @@ function AddPurchaseItem({ selectedPurchaseId }) {
           <b>Purchase Total:</b>{" "}
           <span style={{ paddingLeft: "15px" }}>{total}</span>
         </p>
-        <p>
-          <b>Sales Total:</b>{" "}
-          <span style={{ paddingLeft: "15px" }}>{total}</span>
-        </p>
-        <p>
-          <b>Profit/Loss:</b>{" "}
-          <span style={{ paddingLeft: "15px" }}>{total}</span>
-        </p>
       </div>
 
       {editingItem && (
@@ -176,7 +168,7 @@ function AddPurchaseItem({ selectedPurchaseId }) {
           onPurchaseOrderItemData={fetchItemsData}
           refreshItemsData={fetchItemsData}
           itemToEdit={editingItem}
-          customerPoId={specificCustomerPoId}
+          // customerPoId={specificCustomerPoId}
         />
       )}
     </div>
