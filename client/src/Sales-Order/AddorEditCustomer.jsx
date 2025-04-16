@@ -132,7 +132,7 @@ const AddorEditCustomer = ({
           ? "Item updated successfully!"
           : "Item added successfully!";
         toast.success(successMessage);
-        onPurchaseData(salesOrderItem); // Pass the new/updated item back to SalesOrder
+        // onPurchaseData(salesOrderItem);
       } else {
         toast.error("Failed to save item.");
       }

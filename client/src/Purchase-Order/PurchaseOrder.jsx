@@ -188,6 +188,11 @@ const PurchaseOrder = ({
     calculateTotalPrice(updatedItems);
   };
 
+  const handleCancelAndRefresh = () => {
+    onCloses();
+    window.location.reload();
+  };
+
   return (
     <div>
       {loading && (
@@ -295,14 +300,6 @@ const PurchaseOrder = ({
               </select>
             </label>
 
-            {/* <button
-              type="button"
-              onClick={handleAddItemClick}
-              className="add-item"
-            >
-              Add Item
-            </button> */}
-
             {selectedPurchaseId ? (
               <button
                 type="button"
@@ -334,12 +331,12 @@ const PurchaseOrder = ({
               onClick={handleSubmit}
               disabled={loading}
             >
-              {loading ? "Saving..." : "Save"}
+              {loading ? "Saving..." : existingOrder ? "Update" : "Save"}
             </button>
 
             <button
               type="button"
-              onClick={onCloses}
+              onClick={handleCancelAndRefresh}
               className="customer-form__button"
               disabled={loading}
             >

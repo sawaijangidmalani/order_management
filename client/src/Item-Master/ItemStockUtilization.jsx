@@ -9,7 +9,7 @@ const Modal = styled.div`
   z-index: 100;
   top: 25%;
   left: 25%;
-  width: 800px;
+  width: 1100px;
   border-radius: 20px;
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
   background-color: #f5f8f9;
@@ -52,6 +52,7 @@ function ItemStockUtilization({
   const navigate = useNavigate();
   const [utilizationData, setUtilizationData] = useState([]);
   const [stockData, setStockData] = useState([]);
+  const [customerPOData, setCustomerPOData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const selectedItemData = currentData.filter(
@@ -89,11 +90,9 @@ function ItemStockUtilization({
   const fetchUtilizationData = async (itemId) => {
     try {
       setIsLoading(true);
-
       const utilResponse = await axios.get(
         `https://order-management-tgh3.onrender.com/po/getpurchaseorderitems?itemId=${itemId}`
       );
-
       const poResponse = await axios.get("https://order-management-tgh3.onrender.com/po/getpo");
       const purchaseOrders = poResponse.data;
 
@@ -103,7 +102,6 @@ function ItemStockUtilization({
           const matchingPO = purchaseOrders.find(
             (po) => po.PurchaseOrderID === utilItem.PurchaseOrderID
           );
-
           return {
             ...utilItem,
             quantity: parseFloat(utilItem.AllocatedQty) || 0,
@@ -121,27 +119,87 @@ function ItemStockUtilization({
     }
   };
 
+  const fetchCustomerPOData = async (itemId) => {
+    try {
+      setIsLoading(true);
+      const cpoResponse = await axios.get(
+        `https://order-management-tgh3.onrender.com/customerpo/getcustomersalesorderitems?itemId=${itemId}`
+      );
+      const cpoHeaderResponse = await axios.get(
+        "https://order-management-tgh3.onrender.com/customerpo/getCustomerPo"
+      );
+      const customerPOs = cpoHeaderResponse.data;
+
+      const enrichedCPOData = cpoResponse.data.data
+        .filter((item) => item.ItemID === itemId)
+        .map((cpoItem) => {
+          const matchingCPO = customerPOs.find(
+            (cpo) => cpo.CustomerSalesOrderID === cpoItem.CustomerSalesOrderID
+          );
+          return {
+            ...cpoItem,
+            quantity: parseFloat(cpoItem.AllocatedQty) || 0,
+            cpoDate: cpoItem.OrderDate || new Date().toISOString(),
+            customerSalesOrderNumber: matchingCPO?.SalesOrderNumber || "N/A",
+            unit: selectedItemData[0]?.UnitName || "N/A",
+          };
+        });
+
+      setCustomerPOData(enrichedCPOData);
+    } catch (error) {
+      console.error("Error fetching CustomerPO data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (selectedItemData.length > 0) {
       const itemId = selectedItemData[0].ItemID;
       if (itemId) {
         fetchItemPrices(itemId);
         fetchUtilizationData(itemId);
+        fetchCustomerPOData(itemId);
       }
     }
   }, [selectedItemName1, itemPriceData]);
+
+  // const totalStock = stockData.reduce(
+  //   (acc, curr) => acc + (curr.TotalQty || 0),
+  //   0
+  // );
+
+  // const totalUtilized = utilizationData.reduce(
+  //   (acc, curr) => acc + (curr.quantity || 0),
+  //   0
+  // );
+
+  // const totalCustomerPO = customerPOData.reduce(
+  //   (acc, curr) => acc + (curr.quantity || 0),
+  //   0
+  // );
+
+  // const availableStock = totalStock - totalUtilized;
+
 
   const totalStock = stockData.reduce(
     (acc, curr) => acc + (curr.TotalQty || 0),
     0
   );
-
+  
   const totalUtilized = utilizationData.reduce(
     (acc, curr) => acc + (curr.quantity || 0),
     0
   );
+  
+  const totalCustomerPO = customerPOData.reduce(
+    (acc, curr) => acc + (curr.quantity || 0),
+    0
+  );
+  
 
-  const availableStock = totalStock - totalUtilized;
+  const availableStock = totalStock - totalCustomerPO;
+  const remainingCustomerPO = totalCustomerPO - totalUtilized;
 
   const formatDate = (dateString) => {
     return dateString ? new Date(dateString).toLocaleDateString() : "N/A";
@@ -212,6 +270,41 @@ function ItemStockUtilization({
                     </tbody>
                   </Table>
                 </div>
+
+                <div>
+                  <h4>Customer Purchase Orders</h4>
+                  <Table>
+                    <thead>
+                      <HeadTr>
+                        <Th>CPO Date</Th>
+                        <Th>Qty</Th>
+                        <Th>Unit</Th>
+                        <Th>CustomerPO</Th>
+                      </HeadTr>
+                    </thead>
+                    <tbody>
+                      {customerPOData.length > 0 ? (
+                        customerPOData.map((cpo, index) => (
+                          <Tr
+                            key={cpo.CustomerSalesOrderItemID || `cpo-${index}`}
+                          >
+                            <Td>{formatDate(cpo.cpoDate)}</Td>
+                            <Td>{cpo.quantity}</Td>
+                            <Td>{cpo.unit}</Td>
+                            <Td>{cpo.customerSalesOrderNumber}</Td>
+                          </Tr>
+                        ))
+                      ) : (
+                        <Tr>
+                          <Td colSpan={4} style={{ textAlign: "center" }}>
+                            No CustomerPO data available
+                          </Td>
+                        </Tr>
+                      )}
+                    </tbody>
+                  </Table>
+                </div>
+
                 <div>
                   <h4>Item Utilization</h4>
                   <Table>
@@ -246,14 +339,28 @@ function ItemStockUtilization({
                   </Table>
                 </div>
               </div>
-              <div className="StyledItem">
+
+              {/* <div className="StyledItem">
                 <span>Total Item Stock: {totalStock}</span>
+                <span>Total CustomerPO: {totalCustomerPO}</span>
                 <span>Item Utilization: {totalUtilized}</span>
                 <span>Available Stock: {availableStock}</span>
                 <button className="btns" onClick={() => setShowStock(false)}>
                   Cancel
                 </button>
-              </div>
+              </div> */}
+
+<div className="StyledItem">
+  <span>Total Item Stock: {totalStock}</span>
+  <span>Total CustomerPO: {totalCustomerPO}</span>
+  <span>Item Utilization: {totalUtilized}</span>
+  <span>Available Stock: {availableStock}</span>
+  {/* Optionally display remaining customer PO if needed */}
+  <span>Remaining CustomerPO: {remainingCustomerPO}</span>
+  <button className="btns" onClick={() => setShowStock(false)}>
+    Cancel
+  </button>
+</div>
             </>
           )}
         </div>

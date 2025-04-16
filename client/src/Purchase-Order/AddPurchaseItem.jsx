@@ -164,11 +164,9 @@ function AddPurchaseItem({ selectedPurchaseId }) {
       {editingItem && (
         <AddOrEdit
           selectedPurchaseId={selectedPurchaseId}
-          onClose={() => setEditingItem(false)}
-          onPurchaseOrderItemData={fetchItemsData}
+          onClose={() => setEditingItem(null)}
           refreshItemsData={fetchItemsData}
           itemToEdit={editingItem}
-          // customerPoId={specificCustomerPoId}
         />
       )}
     </div>

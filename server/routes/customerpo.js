@@ -3,152 +3,29 @@ import con from "../utils/db.js";
 
 const router = express.Router();
 
-// router.post("/insertCustomerPo", async (req, res) => {
-//   const { CustomerID, SalesOrderNumber, SalesDate, Status } = req.body;
-
-//   if (!CustomerID || !SalesOrderNumber || !SalesDate) {
-//     return res.status(400).send("All fields are required.");
-//   }
-
-//   const salesDateFormat = new Date(SalesDate);
-//   if (isNaN(salesDateFormat.getTime())) {
-//     return res.status(400).send("SalesDate must be a valid date.");
-//   }
-//   const checkDuplicateSql = `
-//     SELECT COUNT(*) as count 
-//     FROM customersalesorder 
-//     WHERE SalesOrderNumber = ?
-//   `;
-
-//   try {
-//     const [duplicateResult] = await con.query(checkDuplicateSql, [
-//       SalesOrderNumber,
-//     ]);
-
-//     if (duplicateResult[0].count > 0) {
-//       return res
-//         .status(409)
-//         .send("A sales order with this Customer PO already exists.");
-//     }
-
-//     const insertSql = `
-//       INSERT INTO customersalesorder 
-//       (CustomerID, ProviderID, SalesOrderNumber, SalesDate, Status) 
-//       VALUES (?, ?, ?, ?, ?)
-//     `;
-
-//     const [result] = await con.query(insertSql, [
-//       CustomerID,
-//       1,
-//       SalesOrderNumber,
-//       salesDateFormat,
-//       Status,
-//     ]);
-
-//     if (result.affectedRows === 0) {
-//       return res.status(500).send("Failed to insert sales order.");
-//     }
-
-//     res.status(200).send("Sales order inserted successfully.");
-//   } catch (err) {
-//     console.error("Error inserting sales order:", err);
-//     res.status(500).send("An error occurred while inserting sales order.");
-//   }
-// });
-
-
-// router.put("/updateCustomerPo/:CustomerSalesOrderID", async (req, res) => {
-//   const { CustomerSalesOrderID } = req.params;
-//   const { CustomerID, ProviderID, SalesDate, Status, Items } = req.body;
-
-//   const connection = await con.getConnection();
-//   try {
-//     await connection.beginTransaction();
-
-//     const updateSalesOrderQuery = `
-//       UPDATE customersalesorder
-//       SET CustomerID = ?, ProviderID = ?, SalesDate = ?, Status = ?
-//       WHERE CustomerSalesOrderID = ?
-//     `;
-//     const [salesOrderResult] = await connection.execute(updateSalesOrderQuery, [
-//       CustomerID,
-//       ProviderID,
-//       SalesDate,
-//       Status,
-//       CustomerSalesOrderID,
-//     ]);
-
-//     if (salesOrderResult.affectedRows === 0) {
-//       await connection.rollback();
-//       return res.status(404).json({ message: "Sales Order not found" });
-//     }
-
-//     const deleteExistingItemsQuery = `
-//       DELETE FROM customersalesorderitems WHERE CustomerSalesOrderID = ?
-//     `;
-//     await connection.execute(deleteExistingItemsQuery, [CustomerSalesOrderID]);
-
-//     const insertItemQuery = `
-//       INSERT INTO customersalesorderitems 
-//       (CustomerSalesOrderID, ItemID, AllocatedQty, UnitCost, SalesPrice, Tax)
-//       VALUES (?, ?, ?, ?, ?, ?)
-//     `;
-//     for (const item of Items) {
-//       const { ItemID, AllocatedQty, UnitCost, SalesPrice, Tax } = item;
-//       if (!ItemID || AllocatedQty === undefined || UnitCost === undefined) {
-//         throw new Error(
-//           "Missing required item fields: ItemID, AllocatedQty, or UnitCost"
-//         );
-//       }
-//       await connection.execute(insertItemQuery, [
-//         CustomerSalesOrderID,
-//         ItemID,
-//         AllocatedQty,
-//         UnitCost,
-//         SalesPrice || 0,
-//         Tax || 0,
-//       ]);
-//     }
-
-//     await connection.commit();
-//     res.status(200).json({ message: "Sales Order updated successfully!" });
-//   } catch (error) {
-//     await connection.rollback();
-//     console.error("Error updating sales order:", {
-//       message: error.message,
-//       stack: error.stack,
-//       requestBody: req.body,
-//     });
-//     res.status(500).json({
-//       message: "Failed to update sales order",
-//       error: error.message,
-//     });
-//   } finally {
-//     connection.release();
-//   }
-// });
-
-
 router.post("/insertCustomerPo", async (req, res) => {
-  const { CustomerID, ProviderID, SalesOrderNumber, SalesDate, Status, Items } = req.body;
+  const { CustomerID, ProviderID, SalesOrderNumber, SalesDate, Status, Items } =
+    req.body;
 
   const connection = await con.getConnection();
   try {
     await connection.beginTransaction();
 
-    // Check if CustomerID already exists
     const checkDuplicateQuery = `
       SELECT CustomerSalesOrderID 
       FROM customersalesorder 
       WHERE CustomerID = ?
     `;
-    const [existingOrder] = await connection.execute(checkDuplicateQuery, [CustomerID]);
+    const [existingOrder] = await connection.execute(checkDuplicateQuery, [
+      CustomerID,
+    ]);
     if (existingOrder.length > 0) {
       await connection.rollback();
-      return res.status(409).json({ message: "Is Customer ke liye pehle se Sales Order hai!" });
+      return res
+        .status(409)
+        .json({ message: "Is Customer ke liye pehle se Sales Order hai!" });
     }
 
-    // Insert the sales order
     const insertSalesOrderQuery = `
       INSERT INTO customersalesorder (CustomerID, ProviderID, SalesOrderNumber, SalesDate, Status)
       VALUES (?, ?, ?, ?, ?)
@@ -163,7 +40,6 @@ router.post("/insertCustomerPo", async (req, res) => {
 
     const newSalesOrderID = salesOrderResult.insertId;
 
-    // Insert items
     const insertItemQuery = `
       INSERT INTO customersalesorderitems (CustomerSalesOrderID, ItemID, AllocatedQty, UnitCost, SalesPrice, Tax)
       VALUES (?, ?, ?, ?, ?, ?)
@@ -180,16 +56,20 @@ router.post("/insertCustomerPo", async (req, res) => {
     }
 
     await connection.commit();
-    res.status(201).json({ message: "Sales Order created successfully!", CustomerSalesOrderID: newSalesOrderID });
+    res.status(201).json({
+      message: "Sales Order created successfully!",
+      CustomerSalesOrderID: newSalesOrderID,
+    });
   } catch (error) {
     await connection.rollback();
     console.error("Error creating sales order:", error);
-    res.status(500).json({ message: "Failed to create sales order", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to create sales order", error: error.message });
   } finally {
     connection.release();
   }
 });
-
 
 router.put("/updateCustomerPo/:CustomerSalesOrderID", async (req, res) => {
   const { CustomerSalesOrderID } = req.params;
@@ -199,7 +79,6 @@ router.put("/updateCustomerPo/:CustomerSalesOrderID", async (req, res) => {
   try {
     await connection.beginTransaction();
 
-    // Check if another sales order with the same CustomerID and SalesOrderNumber exists (excluding current ID)
     const checkDuplicateQuery = `
       SELECT CustomerSalesOrderID 
       FROM customersalesorder 
@@ -212,10 +91,12 @@ router.put("/updateCustomerPo/:CustomerSalesOrderID", async (req, res) => {
     ]);
     if (existingOrder.length > 0) {
       await connection.rollback();
-      return res.status(409).json({ message: "Another Sales Order with this Customer and PO number already exists" });
+      return res.status(409).json({
+        message:
+          "Another Sales Order with this Customer and PO number already exists",
+      });
     }
 
-    // Update the sales order
     const updateSalesOrderQuery = `
       UPDATE customersalesorder
       SET CustomerID = ?, ProviderID = ?, SalesDate = ?, Status = ?
@@ -234,13 +115,6 @@ router.put("/updateCustomerPo/:CustomerSalesOrderID", async (req, res) => {
       return res.status(404).json({ message: "Sales Order not found" });
     }
 
-    // Delete existing items
-    const deleteExistingItemsQuery = `
-      DELETE FROM customersalesorderitems WHERE CustomerSalesOrderID = ?
-    `;
-    await connection.execute(deleteExistingItemsQuery, [CustomerSalesOrderID]);
-
-    // Insert updated items
     const insertItemQuery = `
       INSERT INTO customersalesorderitems 
       (CustomerSalesOrderID, ItemID, AllocatedQty, UnitCost, SalesPrice, Tax)
@@ -249,7 +123,9 @@ router.put("/updateCustomerPo/:CustomerSalesOrderID", async (req, res) => {
     for (const item of Items) {
       const { ItemID, AllocatedQty, UnitCost, SalesPrice, Tax } = item;
       if (!ItemID || AllocatedQty === undefined || UnitCost === undefined) {
-        throw new Error("Missing required item fields: ItemID, AllocatedQty, or UnitCost");
+        throw new Error(
+          "Missing required item fields: ItemID, AllocatedQty, or UnitCost"
+        );
       }
       await connection.execute(insertItemQuery, [
         CustomerSalesOrderID,
@@ -278,7 +154,6 @@ router.put("/updateCustomerPo/:CustomerSalesOrderID", async (req, res) => {
     connection.release();
   }
 });
-
 
 router.get("/getCustomerPo", async (req, res) => {
   const sql = `
@@ -535,7 +410,7 @@ router.delete("/deleteItem/:CustomerSalesOrderItemID", async (req, res) => {
     ]);
 
     res.status(200).json({
-      message: "Item deleted successfully and SalesTotalPrice updated",
+      message: "Item deleted successfully",
     });
   } catch (error) {
     console.error("Error handling delete operation:", {

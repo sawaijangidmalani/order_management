@@ -17,20 +17,19 @@ const AddOrEdit = ({
   selectedPurchaseId,
   onClose,
   itemToEdit,
-  availableQTY,
 }) => {
   const [products, setProducts] = useState([]);
   const [purchaseOrders, setPurchaseOrders] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [availableQty, setAvailableQty] = useState(availableQTY || 0);
+  const [availableQty, setAvailableQty] = useState(0);
   const [allocatedQty, setAllocatedQty] = useState(0);
-  const [remainingQty, setRemainingQty] = useState(availableQTY || 0);
+  const [remainingQty, setRemainingQty] = useState(0);
   const [unitCost, setUnitCost] = useState(0);
   const [purchasePrice, setPurchasePrice] = useState(0);
   const [invoice, setInvoice] = useState("");
   const [date, setDate] = useState("");
   const [loading, setLoading] = useState(false);
-  const [matchingCPOItems, setMatchingCPOItems] = useState([]); 
+  const [matchingCPOItems, setMatchingCPOItems] = useState([]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -53,18 +52,22 @@ const AddOrEdit = ({
         const res = await axios.get("https://order-management-tgh3.onrender.com/po/getpo");
         if (res.data && Array.isArray(res.data)) {
           setPurchaseOrders(res.data);
-          const matchedOrder = res.data.find(order => order.PurchaseOrderID === selectedPurchaseId);
+          const matchedOrder = res.data.find(
+            (order) => order.PurchaseOrderID === selectedPurchaseId
+          );
           if (matchedOrder) {
             console.log("Matched Purchase Order Details:", matchedOrder);
-            const matchingItems = products.filter(product => product.CustomerSalesOrderID === matchedOrder.CustomerSalesOrderID);
-            if (matchingItems.length > 0) {
-              console.log("Matching CPO Items:", matchingItems);
-              setMatchingCPOItems(matchingItems);
-            } else {
-              setMatchingCPOItems([]);
-            }
+            const matchingItems = products.filter(
+              (product) =>
+                product.CustomerSalesOrderID ===
+                matchedOrder.CustomerSalesOrderID
+            );
+            console.log("Matching CPO Items:", matchingItems);
+            setMatchingCPOItems(matchingItems);
           } else {
-            console.log(`No match found for Purchase Order ID: ${selectedPurchaseId}`);
+            console.log(
+              `No match found for Purchase Order ID: ${selectedPurchaseId}`
+            );
             setMatchingCPOItems([]);
           }
         } else {
@@ -77,6 +80,36 @@ const AddOrEdit = ({
     fetchPO();
   }, [selectedPurchaseId, products]);
 
+  useEffect(() => {
+    if (itemToEdit) {
+      const product = products.find((p) => p.ItemID === itemToEdit.ItemID);
+      setSelectedProduct(product || null);
+      setAvailableQty(product?.AllocatedQty || product?.Stock || 0);
+      setAllocatedQty(itemToEdit.AllocatedQty || 0);
+      setRemainingQty(
+        (product?.AllocatedQty || product?.Stock || 0) -
+          (itemToEdit.AllocatedQty || 0)
+      );
+      setUnitCost(itemToEdit.UnitCost || 0);
+      setPurchasePrice(itemToEdit.PurchasePrice || 0);
+      setInvoice(itemToEdit.InvoiceNumber || "");
+      setDate(
+        itemToEdit.InvoiceDate
+          ? new Date(itemToEdit.InvoiceDate).toISOString().split("T")[0]
+          : ""
+      );
+    } else {
+      setSelectedProduct(null);
+      setAvailableQty(0);
+      setAllocatedQty(0);
+      setRemainingQty(0);
+      setUnitCost(0);
+      setPurchasePrice(0);
+      setInvoice("");
+      setDate("");
+    }
+  }, [itemToEdit, products]);
+
   const handleProductChange = (event) => {
     const itemId = event.target.value;
     const product = products.find((p) => p.ItemID.toString() === itemId);
@@ -86,7 +119,7 @@ const AddOrEdit = ({
       setAllocatedQty(0);
       setRemainingQty(product.AllocatedQty || product.Stock || 0);
       setUnitCost(0);
-      setPurchasePrice(0); 
+      setPurchasePrice(0);
     }
   };
 
@@ -97,7 +130,7 @@ const AddOrEdit = ({
   const handleAllocatedQtyChange = (e) => {
     const qty = parseFloat(e.target.value) || 0;
     setAllocatedQty(qty);
-    setRemainingQty((availableQty || 0) - qty);
+    setRemainingQty(availableQty - qty);
     setPurchasePrice(calculatePurchasePrice(qty, unitCost));
   };
 
@@ -141,11 +174,11 @@ const AddOrEdit = ({
           itemToEdit ? "Item updated successfully!" : "Item added successfully!"
         );
         setSelectedProduct(null);
-        setAllocatedQty("");
-        setAvailableQty("");
-        setRemainingQty("");
-        setUnitCost("");
-        setPurchasePrice("");
+        setAllocatedQty(0);
+        setAvailableQty(0);
+        setRemainingQty(0);
+        setUnitCost(0);
+        setPurchasePrice(0);
         setInvoice("");
         setDate("");
         onClose();
@@ -185,7 +218,9 @@ const AddOrEdit = ({
               className="customer-form__input"
               required
             >
-              <option value="" disabled>Select Item</option>
+              <option value="" disabled>
+                Select Item
+              </option>
               {matchingCPOItems.length > 0 ? (
                 matchingCPOItems.map((item) => (
                   <option key={item.ItemID} value={item.ItemID}>
@@ -203,19 +238,18 @@ const AddOrEdit = ({
             <input
               type="number"
               id="availableQty"
-              value={availableQty || 0}
+              value={availableQty}
               readOnly
               className="customer-form__input"
             />
           </label>
 
           <label htmlFor="allocatedQty" className="customer-form__label">
-            Allocated Qty:
-            <span style={{ color: "red" }}>*</span>
+            Allocated Qty: <span style={{ color: "red" }}>*</span>
             <input
               id="allocatedQty"
               type="number"
-              value={allocatedQty || ""}
+              value={allocatedQty}
               onChange={handleAllocatedQtyChange}
               className="customer-form__input"
               required
@@ -227,19 +261,18 @@ const AddOrEdit = ({
             <input
               id="remainingQty"
               type="number"
-              value={remainingQty || 0}
+              value={remainingQty}
               readOnly
               className="customer-form__input"
             />
           </label>
 
           <label htmlFor="unitCost" className="customer-form__label">
-            Unit Cost:
-            <span style={{ color: "red" }}>*</span>
+            Unit Cost: <span style={{ color: "red" }}>*</span>
             <input
               id="unitCost"
               type="number"
-              value={unitCost || ""}
+              value={unitCost}
               onChange={handleUnitCostChange}
               className="customer-form__input"
               required
@@ -251,19 +284,18 @@ const AddOrEdit = ({
             <input
               id="purchasePrice"
               type="number"
-              value={purchasePrice || 0}
+              value={purchasePrice}
               readOnly
               className="customer-form__input"
             />
           </label>
 
           <label htmlFor="invoice" className="customer-form__label">
-            Invoice Number:
-            <span style={{ color: "red" }}>*</span>
+            Invoice Number: <span style={{ color: "red" }}>*</span>
             <input
               type="text"
               id="invoice"
-              value={invoice || ""}
+              value={invoice}
               onChange={(event) => setInvoice(event.target.value)}
               className="customer-form__input"
               required
@@ -271,12 +303,11 @@ const AddOrEdit = ({
           </label>
 
           <label htmlFor="date" className="customer-form__label">
-            Invoice Date:
-            <span style={{ color: "red" }}>*</span>
+            Invoice Date: <span style={{ color: "red" }}>*</span>
             <input
               type="date"
               id="date"
-              value={date || ""}
+              value={date}
               onChange={(event) => setDate(event.target.value)}
               className="customer-form__input"
               required

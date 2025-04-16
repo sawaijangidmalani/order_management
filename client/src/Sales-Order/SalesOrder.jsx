@@ -40,6 +40,7 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
 
   useEffect(() => {
     if (existingOrder) {
+      console.log("existingOrder", existingOrder);
       setFormData({
         CustomerID: existingOrder.CustomerID ?? "",
         ProviderID: "1",
@@ -110,18 +111,27 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
     console.log("Submitting data:", JSON.stringify(data, null, 2));
 
     try {
+      let response;
       if (existingOrder && existingOrder.CustomerSalesOrderID) {
         const url = `https://order-management-tgh3.onrender.com/customerpo/updateCustomerPo/${existingOrder.CustomerSalesOrderID}`;
-        const response = await axios.put(url, data);
+        response = await axios.put(url, data);
         console.log("Response:", response.data);
         toast.success("Sales Order updated successfully!");
+
+        if (response.data.Items) {
+          setSalesOrderItems(response.data.Items);
+        }
+        window.location.reload();
       } else {
-        const response = await axios.post(
+        response = await axios.post(
           "https://order-management-tgh3.onrender.com/customerpo/insertCustomerPo",
           data
         );
         console.log("Response:", response.data);
         toast.success("Sales Order created successfully!");
+        if (response.data.Items) {
+          setSalesOrderItems(response.data.Items);
+        }
       }
       onClose();
       resetForm();
@@ -135,7 +145,7 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
         toast.error("This Customer is Already Added!");
       } else {
         toast.error(
-          "Error saving sals order: " +
+          "Error saving sales order: " +
             (err.response?.data?.message || err.message)
         );
       }
@@ -154,6 +164,11 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
 
   const handleCancel = () => {
     setAddClick(false);
+  };
+
+  const handleCancelAndRefresh = () => {
+    onClose();
+    window.location.reload();
   };
 
   const resetForm = () => {
@@ -277,7 +292,7 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
             </button>
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleCancelAndRefresh}
               className="customer-form__button"
               disabled={loading}
             >

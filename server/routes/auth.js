@@ -57,6 +57,7 @@ router.post("/login", async (req, res) => {
         name: user.name,
         email: user.email,
         isadmin: user.isadmin,
+        providerId: user.ProviderID, // ✅ include ProviderID here
       },
       token: "dummy_token_123",
     });
@@ -77,28 +78,37 @@ router.post("/signup", async (req, res) => {
   }
 
   try {
-    const [existingUsers] = await pool.query("SELECT * FROM user WHERE email = ?", [email]);
-    console.log("Existing users:", existingUsers);
+    const [existingUsers] = await pool.query(
+      "SELECT * FROM user WHERE email = ?",
+      [email]
+    );
 
     if (existingUsers.length > 0) {
       return res.status(409).json({ message: "Email already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    console.log("Hashed Password:", hashedPassword);
 
+    // 👇 Generate a unique ProviderID (e.g., max + 1)
+    const [result] = await pool.query(
+      "SELECT MAX(ProviderID) AS maxProvider FROM user"
+    );
+    const newProviderId = (result[0].maxProvider || 0) + 1;
+
+    // ✅ Now insert user with ProviderID
     await pool.query(
-      "INSERT INTO user (Username, name, email, passwordhash, isadmin, status) VALUES (?, ?, ?, ?, ?, ?)",
-      [username, name, email, hashedPassword, 0, 1]
+      "INSERT INTO user (Username, name, email, passwordhash, isadmin, status, ProviderID) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [username, name, email, hashedPassword, 0, 1, newProviderId]
     );
 
-    res.status(201).json({ success: true, message: "User registered successfully" });
+    res
+      .status(201)
+      .json({ success: true, message: "User registered successfully" });
   } catch (err) {
     console.error("❌ Error processing signup request:", err);
     res.status(500).json({ error: err.message });
   }
 });
-
 
 router.post("/forgotPassword", async (req, res) => {
   const { email } = req.body;
