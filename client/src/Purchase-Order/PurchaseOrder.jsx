@@ -13,7 +13,6 @@ const PurchaseOrder = ({
   customesId,
   selectedPurchaseId,
   existingOrder,
-  resetForm,
 }) => {
   const [customerID, setCustomerID] = useState("");
   const [customerPO, setCustomerPO] = useState("");
@@ -32,7 +31,7 @@ const PurchaseOrder = ({
     const fetchCustomerPoData = async () => {
       try {
         const response = await axios.get(
-          "https://order-management-tgh3.onrender.com/customerpo/getCustomerPo"
+          "http://localhost:8000/customerpo/getCustomerPo"
         );
         const activeCustomerPo = response.data.filter(
           (customer) => customer.Status === 1
@@ -50,6 +49,7 @@ const PurchaseOrder = ({
         setCustomerData(uniqueCustomers);
       } catch (error) {
         console.error("Error fetching customer PO data:", error);
+        toast.error("Failed to fetch customer data.");
       }
     };
     fetchCustomerPoData();
@@ -64,7 +64,7 @@ const PurchaseOrder = ({
     const fetchSalesData = async () => {
       try {
         const response = await axios.get(
-          "https://order-management-tgh3.onrender.com/customerpo/getCustomerPo"
+          "http://localhost:8000/customerpo/getCustomerPo"
         );
         const activeCPOs = response.data
           .filter(
@@ -78,6 +78,7 @@ const PurchaseOrder = ({
         setSalesData(activeCPOs);
       } catch (error) {
         console.error("Error fetching sales data:", error);
+        toast.error("Failed to fetch sales data.");
       }
     };
 
@@ -101,40 +102,55 @@ const PurchaseOrder = ({
     };
 
     try {
+      console.log("Submitting data:", data);
       let response;
 
       if (editData && editData.PurchaseOrderID) {
         response = await axios.put(
-          `https://order-management-tgh3.onrender.com/po/updatepo/${editData.PurchaseOrderID}`,
+          `http://localhost:8000/po/updatepo/${encodeURIComponent(
+            purchaseOrderNumber
+          )}`,
           data
         );
       } else {
-        response = await axios.post("https://order-management-tgh3.onrender.com/po/insertpo", data);
+        response = await axios.post("http://localhost:8000/po/insertpo", data);
       }
 
       if (response.status === 200 || response.status === 201) {
-        toast.success("Purchase order saved successfully");
+        toast.success(
+          editData
+            ? "Purchase order updated successfully"
+            : "Purchase order saved successfully"
+        );
+        onCloses();
+        window.location.reload();
       }
-
-      window.location.reload();
-      onCloses();
-      resetForm();
-
-      return;
     } catch (error) {
-      console.error("Error inserting/updating purchase order:", error);
+      console.error("Error inserting/updating purchase order:", error, {
+        code: error.code,
+        message: error.message,
+        response: error.response ? error.response.data : null,
+      });
 
       if (error.response) {
         if (error.response.status === 409) {
-          toast.error("This customer already exists.");
+          toast.error("This customer already has a purchase order.");
+        } else if (error.response.status === 404) {
+          toast.error("Purchase order not found.");
+        } else if (error.response.status === 400) {
+          toast.error(error.response.data.message || "Invalid data provided.");
+        } else if (error.response.status === 500) {
+          toast.error(error.response.data.message || "Server error occurred.");
         } else {
           toast.error(
             error.response.data.message ||
-              "An error occurred while saving the purchase order."
+              "An unexpected server error occurred."
           );
         }
+      } else if (error.request) {
+        toast.error("Network error: Could not connect to the server.");
       } else {
-        // toast.error("An unexpected error occurred.");
+        toast.error(`Error: ${error.message}`);
       }
     } finally {
       setLoading(false);
@@ -143,15 +159,16 @@ const PurchaseOrder = ({
 
   useEffect(() => {
     if (existingOrder) {
-      setCustomerID(existingOrder.CustomerID);
-      setCustomerPO(existingOrder.CustomerSalesOrderID);
+      setCustomerID(existingOrder.CustomerID || "");
+      setCustomerPO(existingOrder.CustomerSalesOrderID || "");
       setDate(
         existingOrder.PurchaseDate
           ? existingOrder.PurchaseDate.slice(0, 10)
           : ""
       );
-      setStatus(existingOrder.Status);
-      setPurchaseOrderNumber(existingOrder.PurchaseOrderNumber);
+      setStatus(existingOrder.Status || "");
+      setPurchaseOrderNumber(existingOrder.PurchaseOrderNumber || "");
+      setItems(existingOrder.items || []);
     }
   }, [existingOrder]);
 
@@ -162,11 +179,16 @@ const PurchaseOrder = ({
   const handleAddItem = (item) => {
     const updateItems = [...purchaseOrderItems, item];
     setPurchaseOrderItems(updateItems);
+    setItems(updateItems);
     calculateTotalPrice(updateItems);
   };
 
   const calculateTotalPrice = (items) => {
-    return items.reduce((total, item) => total + item.price * item.quantity, 0);
+    return items.reduce(
+      (total, item) =>
+        total + (item.Price || item.price || 0) * (item.Quantity || 0),
+      0
+    );
   };
 
   const handleCancel = () => {
@@ -185,6 +207,7 @@ const PurchaseOrder = ({
   const handleDeleteItem = (index) => {
     const updatedItems = purchaseOrderItems.filter((_, i) => i !== index);
     setPurchaseOrderItems(updatedItems);
+    setItems(updatedItems);
     calculateTotalPrice(updatedItems);
   };
 
@@ -294,7 +317,7 @@ const PurchaseOrder = ({
                 className="status-salesorder_input"
                 required
               >
-                <option>Select Status</option>
+                <option value="">Select Status</option>
                 <option value={1}>Active</option>
                 <option value={0}>Inactive</option>
               </select>
@@ -323,7 +346,6 @@ const PurchaseOrder = ({
           ) : (
             ""
           )}
-
           <div className="customer-form__button-container">
             <button
               type="submit"

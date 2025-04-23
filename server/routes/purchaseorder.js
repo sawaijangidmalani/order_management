@@ -20,7 +20,7 @@ router.post("/insertpo", async (req, res) => {
     !CustomerSalesOrderID ||
     !PurchaseOrderNumber ||
     !PurchaseDate ||
-    !Status
+    Status === undefined
   ) {
     return res
       .status(400)
@@ -28,11 +28,10 @@ router.post("/insertpo", async (req, res) => {
   }
 
   try {
+    // Optional: Commenting out duplicate check if multiple POs per customer are allowed
+    /*
     const checkDuplicateQuery = `SELECT COUNT(*) AS count FROM purchaseorders WHERE CustomerID = ?`;
-    const [duplicateResult] = await pool.query(checkDuplicateQuery, [
-      CustomerID,
-    ]);
-
+    const [duplicateResult] = await pool.query(checkDuplicateQuery, [CustomerID]);
     const existingPOCount = duplicateResult[0]?.count || 0;
 
     if (existingPOCount > 0) {
@@ -41,6 +40,7 @@ router.post("/insertpo", async (req, res) => {
         message: "A purchase order for this customer already exists.",
       });
     }
+    */
 
     const insertPOQuery = `
       INSERT INTO purchaseorders 
@@ -91,49 +91,93 @@ router.post("/insertpo", async (req, res) => {
 
 router.put("/updatepo/:purchaseOrderNumber", async (req, res) => {
   const { purchaseOrderNumber } = req.params;
-  const { CustomerID, CustomerSalesOrderID, PurchaseDate, Status } = req.body;
+  const {
+    CustomerID,
+    CustomerSalesOrderID,
+    ProviderID,
+    PurchaseDate,
+    Status,
+    PurchaseTotalPrice,
+    items,
+  } = req.body;
 
-  if (!CustomerID || !CustomerSalesOrderID || !PurchaseDate || !Status) {
+  if (
+    !CustomerID ||
+    !CustomerSalesOrderID ||
+    !PurchaseDate ||
+    Status === undefined
+  ) {
     return res
       .status(400)
       .json({ error: true, message: "Missing or invalid data" });
   }
 
-  const updateQuery = `
-    UPDATE purchaseorders
-    SET 
-      CustomerSalesOrderID = ?, 
-      CustomerID = ?, 
-      PurchaseDate = ?, 
-      Status = ?
-    WHERE PurchaseOrderNumber = ?;
-  `;
-
   try {
     await pool.query("START TRANSACTION");
 
-    const updateValues = [
+    const updatePOQuery = `
+      UPDATE purchaseorders
+      SET 
+        CustomerSalesOrderID = ?, 
+        CustomerID = ?, 
+        ProviderID = ?,
+        PurchaseDate = ?, 
+        Status = ?,
+        PurchaseTotalPrice = ?
+      WHERE PurchaseOrderNumber = ?;
+    `;
+
+    const updatePOValues = [
       CustomerSalesOrderID,
       CustomerID,
+      ProviderID || 1,
       PurchaseDate,
       Status,
+      PurchaseTotalPrice || 0,
       purchaseOrderNumber,
     ];
 
-    const [result] = await pool.query(updateQuery, updateValues);
+    const [poResult] = await pool.query(updatePOQuery, updatePOValues);
 
-    if (result.affectedRows === 0) {
+    if (poResult.affectedRows === 0) {
+      await pool.query("ROLLBACK");
       return res.status(404).json({
         error: true,
         message: "Purchase order not found",
       });
     }
 
+    if (items && items.length > 0) {
+      const deleteItemsQuery = `
+        DELETE FROM purchaseorderitems 
+        WHERE PurchaseOrderID = (SELECT PurchaseOrderID FROM purchaseorders WHERE PurchaseOrderNumber = ?);
+      `;
+      await pool.query(deleteItemsQuery, [purchaseOrderNumber]);
+
+      const insertItemsQuery = `
+        INSERT INTO purchaseorderitems (PurchaseOrderID, ItemID, Quantity, Price)
+        VALUES ?;
+      `;
+      const [poData] = await pool.query(
+        `SELECT PurchaseOrderID FROM purchaseorders WHERE PurchaseOrderNumber = ?`,
+        [purchaseOrderNumber]
+      );
+      const PurchaseOrderID = poData[0].PurchaseOrderID;
+
+      const itemValues = items.map((item) => [
+        PurchaseOrderID,
+        item.ItemID,
+        item.Quantity,
+        item.Price || 0,
+      ]);
+      await pool.query(insertItemsQuery, [itemValues]);
+    }
+
     await pool.query("COMMIT");
     res.status(200).json({ message: "Purchase order updated successfully" });
   } catch (error) {
     await pool.query("ROLLBACK");
-    console.error("Error updating data:", error.message);
+    console.error("Error updating purchase order:", error.message);
     res.status(500).json({
       error: true,
       message: "Error updating purchase order",

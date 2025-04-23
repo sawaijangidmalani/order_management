@@ -41,7 +41,7 @@ function ManageItem() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    axios.get("https://order-management-tgh3.onrender.com/item/getItems").then((data) => {
+    axios.get("http://localhost:8000/item/getItems").then((data) => {
       if (!data?.data?.error) {
         setItems(data?.data?.data);
         setFilteredItems(data?.data?.data);
@@ -155,7 +155,7 @@ function ManageItem() {
   const handleDelete = (ItemID) => {
     setIsLoading(true);
     axios
-      .delete("https://order-management-tgh3.onrender.com/item/deleteItems", {
+      .delete("http://localhost:8000/item/deleteItems", {
         data: { ItemID: ItemID },
       })
       .then(() => {
@@ -205,7 +205,7 @@ function ManageItem() {
     try {
       const itemStockRequests = itemsToFetch.map((item) =>
         axios.get(
-          `https://order-management-tgh3.onrender.com/itemPrice/getItemPrices/${item.ItemID}`
+          `http://localhost:8000/itemPrice/getItemPrices/${item.ItemID}`
         )
       );
       const responses = await Promise.all(itemStockRequests);
@@ -260,28 +260,15 @@ function ManageItem() {
               </button>
               {isItemDropdownOpen && (
                 <div className="dropdownoption">
-                  <input
-                    type="text"
-                    placeholder="Search Item..."
-                    value={searchTermItem}
-                    onChange={handleSearchChangeItem}
-                    className="search-input"
-                  />
-                  {items
-                    .filter((item) =>
-                      item.Name.toLowerCase().includes(
-                        searchTermItem.toLowerCase()
-                      )
-                    )
-                    .map((item) => (
-                      <div
-                        className="option"
-                        key={item.ItemID}
-                        onClick={() => handleItemSelect(item.Name)}
-                      >
-                        {item.Name}
-                      </div>
-                    ))}
+                  {items.map((item) => (
+                    <div
+                      className="option"
+                      key={item.ItemID}
+                      onClick={() => handleItemSelect(item.Name)}
+                    >
+                      {item.Name}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -292,28 +279,15 @@ function ManageItem() {
               </button>
               {isSupplierDropdownOpen && (
                 <div className="dropdownoption">
-                  <input
-                    type="text"
-                    placeholder="Search Supplier..."
-                    value={searchTermSupplier}
-                    onChange={handleSearchChangeSupplier}
-                    className="search-input"
-                  />
-                  {getSuppliersForSelectedItem()
-                    .filter((supplier) =>
-                      supplier
-                        .toLowerCase()
-                        .includes(searchTermSupplier.toLowerCase())
-                    )
-                    .map((supplier) => (
-                      <div
-                        className="option"
-                        key={supplier}
-                        onClick={() => handleSupplierSelect(supplier)}
-                      >
-                        {supplier}
-                      </div>
-                    ))}
+                  {getSuppliersForSelectedItem().map((supplier) => (
+                    <div
+                      className="option"
+                      key={supplier}
+                      onClick={() => handleSupplierSelect(supplier)}
+                    >
+                      {supplier}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

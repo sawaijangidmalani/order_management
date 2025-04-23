@@ -8,16 +8,12 @@ import { FaSpinner } from "react-icons/fa";
 const Modal = styled.div`
   position: fixed;
   z-index: 100;
-  top: 20%;
+  top: 1%;
   left: 35%;
   border-radius: 20px;
 `;
 
-const AddOrEdit = ({
-  selectedPurchaseId,
-  onClose,
-  itemToEdit,
-}) => {
+const AddOrEdit = ({ selectedPurchaseId, onClose, itemToEdit }) => {
   const [products, setProducts] = useState([]);
   const [purchaseOrders, setPurchaseOrders] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -35,7 +31,7 @@ const AddOrEdit = ({
     const fetchProducts = async () => {
       try {
         const res = await axios.get(
-          "https://order-management-tgh3.onrender.com/customerpo/getcustomersalesorderitems"
+          "http://localhost:8000/customerpo/getcustomersalesorderitems"
         );
         setProducts(res.data.data);
         console.log("CPO Item:", res.data.data);
@@ -49,7 +45,9 @@ const AddOrEdit = ({
   useEffect(() => {
     const fetchPO = async () => {
       try {
-        const res = await axios.get("https://order-management-tgh3.onrender.com/po/getpo");
+        const res = await axios.get(
+          "http://localhost:8000/po/getpo"
+        );
         if (res.data && Array.isArray(res.data)) {
           setPurchaseOrders(res.data);
           const matchedOrder = res.data.find(
@@ -62,7 +60,7 @@ const AddOrEdit = ({
                 product.CustomerSalesOrderID ===
                 matchedOrder.CustomerSalesOrderID
             );
-            console.log("Matching CPO Items:", matchingItems);
+            // console.log("Matching CPO Items:", matchingItems);
             setMatchingCPOItems(matchingItems);
           } else {
             console.log(
@@ -159,12 +157,12 @@ const AddOrEdit = ({
       let response;
       if (itemToEdit) {
         response = await axios.put(
-          "https://order-management-tgh3.onrender.com/po/editpurchaseorderitems",
+          "http://localhost:8000/po/editpurchaseorderitems",
           purchaseOrderItem
         );
       } else {
         response = await axios.post(
-          "https://order-management-tgh3.onrender.com/po/addpurchaseorderitems",
+          "http://localhost:8000/po/addpurchaseorderitems",
           purchaseOrderItem
         );
       }
