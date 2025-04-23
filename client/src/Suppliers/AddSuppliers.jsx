@@ -65,7 +65,7 @@ function AddSuppliers({ closeModal, editingSuppliers }) {
 
   const checkSupplierExists = async (name, email) => {
     try {
-      const response = await axios.get("https://order-management-tgh3.onrender.com/supplier/checkDuplicate", {
+      const response = await axios.get("http://localhost:8000/supplier/checkDuplicate", {
         params: { name, email }
       });
       return {
@@ -89,8 +89,8 @@ function AddSuppliers({ closeModal, editingSuppliers }) {
     setLoading(true);
 
     const apiUrl = editingSuppliers
-      ? "https://order-management-tgh3.onrender.com/supplier/updateSupplier"
-      : "https://order-management-tgh3.onrender.com/supplier/add_supplier";
+      ? "http://localhost:8000/supplier/updateSupplier"
+      : "http://localhost:8000/supplier/add_supplier";
 
     try {
       if (!editingSuppliers) {

@@ -36,7 +36,7 @@ const AddItem = ({ editItem, closeModal }) => {
   const fetchSuppliers = async () => {
     try {
       const response = await axios.get(
-        "https://order-management-tgh3.onrender.com/supplier/getSupplierData"
+        "http://localhost:8000/supplier/getSupplierData"
       );
       setSuppliers(response.data);
     } catch (err) {
@@ -48,7 +48,7 @@ const AddItem = ({ editItem, closeModal }) => {
   const fetchItemUnits = async () => {
     try {
       const response = await axios.get(
-        "https://order-management-tgh3.onrender.com/item/getItemUnits"
+        "http://localhost:8000/item/getItemUnits"
       );
       console.log("Fetched Item Units:", response.data);
       setItemUnits(response.data);
@@ -102,8 +102,8 @@ const AddItem = ({ editItem, closeModal }) => {
 
     const isEditMode = editItem && editItem.ItemID;
     const apiUrl = isEditMode
-      ? "https://order-management-tgh3.onrender.com/item/updateItems"
-      : "https://order-management-tgh3.onrender.com/item/add_items";
+      ? "http://localhost:8000/item/updateItems"
+      : "http://localhost:8000/item/add_items";
 
     try {
       const response = await axios.post(apiUrl, formData);

@@ -83,7 +83,7 @@ function Dashboard() {
     const fetchCustomers = async () => {
       try {
         const result = await axios.get(
-          "https://order-management-tgh3.onrender.com/customer/getCustomerData"
+          "http://localhost:8000/customer/getCustomerData"
         );
         const activeCustomers = result.data.filter(
           (customer) => customer.Status === 1
@@ -97,7 +97,7 @@ function Dashboard() {
     const fetchAllCustomerPOs = async () => {
       try {
         const response = await axios.get(
-          "https://order-management-tgh3.onrender.com/customerpo/getCustomerPo"
+          "http://localhost:8000/customerpo/getCustomerPo"
         );
         const customerPOs = response.data.map((item) => ({
           salesOrderNumber: item.SalesOrderNumber,
@@ -112,7 +112,7 @@ function Dashboard() {
 
     const fetchAllPurchaseOrders = async () => {
       try {
-        const response = await axios.get("https://order-management-tgh3.onrender.com/po/getpo");
+        const response = await axios.get("http://localhost:8000/po/getpo");
         const allPOs = response.data.map((po) => ({
           purchaseOrderNumber: po.PurchaseOrderNumber,
           purchaseOrderID: po.PurchaseOrderID,
@@ -133,7 +133,7 @@ function Dashboard() {
     setLoadingCPOs(true);
     try {
       const response = await axios.get(
-        `https://order-management-tgh3.onrender.com/customerpo/getCustomerPo?customerId=${customerId}`
+        `http://localhost:8000/customerpo/getCustomerPo?customerId=${customerId}`
       );
       const customerPOs = response.data
         .filter((item) => item.CustomerID === customerId)
@@ -152,7 +152,7 @@ function Dashboard() {
 
   const fetchPurchaseOrdersForCPO = async (selectedCPO) => {
     try {
-      const response = await axios.get("https://order-management-tgh3.onrender.com/po/getpo");
+      const response = await axios.get("http://localhost:8000/po/getpo");
       const selectedPO = filteredCustomerPOs.find(
         (po) => po.salesOrderNumber === selectedCPO
       );
@@ -178,7 +178,7 @@ function Dashboard() {
   const fetchItemsData = async () => {
     try {
       const res = await axios.get(
-        "https://order-management-tgh3.onrender.com/customerpo/getcustomersalesorderitems"
+        "http://localhost:8000/customerpo/getcustomersalesorderitems"
       );
       if (res.data && res.data.data) {
         const selectedPO = filteredCustomerPOs.find(
@@ -206,7 +206,7 @@ function Dashboard() {
   const fetchPurchaseItems = async () => {
     try {
       const res = await axios.get(
-        "https://order-management-tgh3.onrender.com/po/getpurchaseorderitems"
+        "http://localhost:8000/po/getpurchaseorderitems"
       );
       if (res.data && res.data.data) {
         const selectedPO = purchaseOrders.find(

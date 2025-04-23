@@ -66,7 +66,7 @@ function AddCustomer({ closeModal, editingCustomer }) {
   const checkCustomerExists = async (name, email) => {
     try {
       const response = await axios.get(
-        "https://order-management-tgh3.onrender.com/customer/checkDuplicate",
+        "http://localhost:8000/customer/checkDuplicate",
         {
           params: { name, email },
         }
@@ -92,8 +92,8 @@ function AddCustomer({ closeModal, editingCustomer }) {
     setLoading(true);
 
     const apiUrl = editingCustomer
-      ? "https://order-management-tgh3.onrender.com/customer/updateCustomer"
-      : "https://order-management-tgh3.onrender.com/customer/add_customer";
+      ? "http://localhost:8000/customer/updateCustomer"
+      : "http://localhost:8000/customer/add_customer";
 
     try {
       if (!editingCustomer) {

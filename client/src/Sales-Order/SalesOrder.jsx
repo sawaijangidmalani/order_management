@@ -25,7 +25,7 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
     const fetchCustomerData = async () => {
       try {
         const res = await axios.get(
-          "https://order-management-tgh3.onrender.com/customer/getCustomerData"
+          "http://localhost:8000/customer/getCustomerData"
         );
         const activeCustomers = res.data.filter(
           (customer) => customer.Status === 1
@@ -113,7 +113,7 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
     try {
       let response;
       if (existingOrder && existingOrder.CustomerSalesOrderID) {
-        const url = `https://order-management-tgh3.onrender.com/customerpo/updateCustomerPo/${existingOrder.CustomerSalesOrderID}`;
+        const url = `http://localhost:8000/customerpo/updateCustomerPo/${existingOrder.CustomerSalesOrderID}`;
         response = await axios.put(url, data);
         console.log("Response:", response.data);
         toast.success("Sales Order updated successfully!");
@@ -124,7 +124,7 @@ const SalesOrder = ({ onClose, existingOrder, selectedSaleId, customesId }) => {
         window.location.reload();
       } else {
         response = await axios.post(
-          "https://order-management-tgh3.onrender.com/customerpo/insertCustomerPo",
+          "http://localhost:8000/customerpo/insertCustomerPo",
           data
         );
         console.log("Response:", response.data);

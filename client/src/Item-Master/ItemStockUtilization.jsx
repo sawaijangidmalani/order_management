@@ -71,7 +71,7 @@ function ItemStockUtilization({
         setStockData(enrichedStockData);
       } else {
         const response = await axios.get(
-          `https://order-management-tgh3.onrender.com/itemPrice/getItemPrices/${itemId}`
+          `http://localhost:8000/itemPrice/getItemPrices/${itemId}`
         );
         const enrichedStockData = response.data.map((priceItem) => ({
           ...priceItem,
@@ -91,9 +91,9 @@ function ItemStockUtilization({
     try {
       setIsLoading(true);
       const utilResponse = await axios.get(
-        `https://order-management-tgh3.onrender.com/po/getpurchaseorderitems?itemId=${itemId}`
+        `http://localhost:8000/po/getpurchaseorderitems?itemId=${itemId}`
       );
-      const poResponse = await axios.get("https://order-management-tgh3.onrender.com/po/getpo");
+      const poResponse = await axios.get("http://localhost:8000/po/getpo");
       const purchaseOrders = poResponse.data;
 
       const enrichedUtilData = utilResponse.data.data
@@ -123,10 +123,10 @@ function ItemStockUtilization({
     try {
       setIsLoading(true);
       const cpoResponse = await axios.get(
-        `https://order-management-tgh3.onrender.com/customerpo/getcustomersalesorderitems?itemId=${itemId}`
+        `http://localhost:8000/customerpo/getcustomersalesorderitems?itemId=${itemId}`
       );
       const cpoHeaderResponse = await axios.get(
-        "https://order-management-tgh3.onrender.com/customerpo/getCustomerPo"
+        "http://localhost:8000/customerpo/getCustomerPo"
       );
       const customerPOs = cpoHeaderResponse.data;
 
