@@ -27,6 +27,14 @@ const PurchaseOrder = ({
   const [selectedItem, setSelectedItem] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Debugging: Log props
+  useEffect(() => {
+    console.log("editData:", editData);
+    console.log("existingOrder:", existingOrder);
+    console.log("selectedPurchaseId:", selectedPurchaseId);
+  }, [editData, existingOrder, selectedPurchaseId]);
+
+  // Fetch customer data
   useEffect(() => {
     const fetchCustomerPoData = async () => {
       try {
@@ -55,6 +63,7 @@ const PurchaseOrder = ({
     fetchCustomerPoData();
   }, []);
 
+  // Fetch sales data
   useEffect(() => {
     if (!customerID) {
       setSalesData([]);
@@ -85,40 +94,73 @@ const PurchaseOrder = ({
     fetchSalesData();
   }, [customerID]);
 
+  // Set form values when editing
+  useEffect(() => {
+    if (editData || existingOrder) {
+      const order = editData || existingOrder;
+      setCustomerID(order.CustomerID || "");
+      setCustomerPO(order.CustomerSalesOrderID || "");
+      setDate(order.PurchaseDate ? order.PurchaseDate.slice(0, 10) : "");
+      setStatus(order.Status || "");
+      setPurchaseOrderNumber(order.PurchaseOrderNumber || "");
+      setItems(order.items || []);
+      setPurchaseOrderItems(order.items || []);
+    }
+  }, [editData, existingOrder]);
+
+  const calculateTotalPrice = (items) => {
+    if (!items || items.length === 0) return 0;
+    const total = items.reduce((total, item) => {
+      const price = Number(item.Price || item.price || 0);
+      const quantity = Number(item.Quantity || 0);
+      return total + price * quantity;
+    }, 0);
+    console.log("Calculated PurchaseTotalPrice:", total); // Debugging
+    return total;
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
 
+    const totalPrice = calculateTotalPrice(items);
     const data = {
-      PurchaseOrderID: editData ? editData.PurchaseOrderID : "",
+      PurchaseOrderID:
+        editData?.PurchaseOrderID || existingOrder?.PurchaseOrderID || "",
       CustomerSalesOrderID: customerPO || null,
       CustomerID: customerID || null,
       ProviderID: 1,
       PurchaseOrderNumber: purchaseOrderNumber,
       PurchaseDate: date,
       Status: status,
-      PurchaseTotalPrice: calculateTotalPrice(items),
+      PurchaseTotalPrice: totalPrice,
       items,
     };
 
-    try {
-      console.log("Submitting data:", data);
-      let response;
+    console.log("Submitting data:", data); // Debugging
 
-      if (editData && editData.PurchaseOrderID) {
+    try {
+      let response;
+      const isEditing =
+        editData?.PurchaseOrderID || existingOrder?.PurchaseOrderID;
+
+      if (isEditing) {
+        console.log(
+          "Sending PUT request for PurchaseOrderID:",
+          data.PurchaseOrderID
+        );
         response = await axios.put(
-          `http://localhost:8000/po/updatepo/${encodeURIComponent(
-            purchaseOrderNumber
-          )}`,
+          `http://localhost:8000/po/updatepo/${data.PurchaseOrderID}`,
           data
         );
       } else {
+        console.log("Sending POST request");
         response = await axios.post("http://localhost:8000/po/insertpo", data);
       }
 
       if (response.status === 200 || response.status === 201) {
         toast.success(
-          editData
+          isEditing
             ? "Purchase order updated successfully"
             : "Purchase order saved successfully"
         );
@@ -126,7 +168,7 @@ const PurchaseOrder = ({
         window.location.reload();
       }
     } catch (error) {
-      console.error("Error inserting/updating purchase order:", error, {
+      console.error("Error in handleSubmit:", error, {
         code: error.code,
         message: error.message,
         response: error.response ? error.response.data : null,
@@ -157,21 +199,6 @@ const PurchaseOrder = ({
     }
   };
 
-  useEffect(() => {
-    if (existingOrder) {
-      setCustomerID(existingOrder.CustomerID || "");
-      setCustomerPO(existingOrder.CustomerSalesOrderID || "");
-      setDate(
-        existingOrder.PurchaseDate
-          ? existingOrder.PurchaseDate.slice(0, 10)
-          : ""
-      );
-      setStatus(existingOrder.Status || "");
-      setPurchaseOrderNumber(existingOrder.PurchaseOrderNumber || "");
-      setItems(existingOrder.items || []);
-    }
-  }, [existingOrder]);
-
   const handleAddItemClick = () => {
     setAddClick(true);
   };
@@ -180,15 +207,8 @@ const PurchaseOrder = ({
     const updateItems = [...purchaseOrderItems, item];
     setPurchaseOrderItems(updateItems);
     setItems(updateItems);
+    console.log("Updated items:", updateItems); // Debugging
     calculateTotalPrice(updateItems);
-  };
-
-  const calculateTotalPrice = (items) => {
-    return items.reduce(
-      (total, item) =>
-        total + (item.Price || item.price || 0) * (item.Quantity || 0),
-      0
-    );
   };
 
   const handleCancel = () => {
@@ -208,6 +228,7 @@ const PurchaseOrder = ({
     const updatedItems = purchaseOrderItems.filter((_, i) => i !== index);
     setPurchaseOrderItems(updatedItems);
     setItems(updatedItems);
+    console.log("Deleted item, new items:", updatedItems); // Debugging
     calculateTotalPrice(updatedItems);
   };
 
@@ -234,7 +255,9 @@ const PurchaseOrder = ({
         <>
           <form onSubmit={handleSubmit} className="salesorder-form">
             <h3 className="salesorder-form-heading">
-              {editData ? "Edit Purchase Order" : "Add Purchase Order"}
+              {editData || existingOrder
+                ? "Edit Purchase Order"
+                : "Add Purchase Order"}
             </h3>
 
             <label htmlFor="customer">
@@ -257,8 +280,7 @@ const PurchaseOrder = ({
             </label>
 
             <label htmlFor="date">
-              Date:
-              <span style={{ color: "red" }}>*</span>
+              Date: <span style={{ color: "red" }}>*</span>
               <input
                 type="date"
                 id="date"
@@ -294,8 +316,7 @@ const PurchaseOrder = ({
             </label>
 
             <label htmlFor="purchaseOrderNumber">
-              Purchase Order Number:
-              <span style={{ color: "red" }}>*</span>
+              Purchase Order Number: <span style={{ color: "red" }}>*</span>
               <input
                 id="purchaseOrderNumber"
                 name="PurchaseOrderNumber"
@@ -307,8 +328,7 @@ const PurchaseOrder = ({
             </label>
 
             <label htmlFor="status">
-              Status:
-              <span style={{ color: "red" }}>*</span>
+              Status: <span style={{ color: "red" }}>*</span>
               <select
                 id="status"
                 name="Status"
@@ -353,7 +373,11 @@ const PurchaseOrder = ({
               onClick={handleSubmit}
               disabled={loading}
             >
-              {loading ? "Saving..." : existingOrder ? "Update" : "Save"}
+              {loading
+                ? "Saving..."
+                : editData || existingOrder
+                ? "Update"
+                : "Save"}
             </button>
 
             <button

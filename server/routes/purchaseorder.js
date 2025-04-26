@@ -28,27 +28,13 @@ router.post("/insertpo", async (req, res) => {
   }
 
   try {
-    // Optional: Commenting out duplicate check if multiple POs per customer are allowed
-    /*
-    const checkDuplicateQuery = `SELECT COUNT(*) AS count FROM purchaseorders WHERE CustomerID = ?`;
-    const [duplicateResult] = await pool.query(checkDuplicateQuery, [CustomerID]);
-    const existingPOCount = duplicateResult[0]?.count || 0;
-
-    if (existingPOCount > 0) {
-      return res.status(409).json({
-        error: true,
-        message: "A purchase order for this customer already exists.",
-      });
-    }
-    */
+    await pool.query("START TRANSACTION");
 
     const insertPOQuery = `
       INSERT INTO purchaseorders 
       (CustomerSalesOrderID, CustomerID, ProviderID, PurchaseOrderNumber, PurchaseDate, Status, PurchaseTotalPrice)
       VALUES (?, ?, ?, ?, ?, ?, ?);
     `;
-
-    await pool.query("START TRANSACTION");
 
     const [poResult] = await pool.query(insertPOQuery, [
       CustomerSalesOrderID,
@@ -77,7 +63,10 @@ router.post("/insertpo", async (req, res) => {
     }
 
     await pool.query("COMMIT");
-    res.status(201).json({ message: "Purchase order inserted successfully" });
+    res.status(201).json({
+      message: "Purchase order inserted successfully",
+      PurchaseOrderID,
+    });
   } catch (error) {
     await pool.query("ROLLBACK");
     console.error("Error inserting purchase order:", error.message);
@@ -89,12 +78,13 @@ router.post("/insertpo", async (req, res) => {
   }
 });
 
-router.put("/updatepo/:purchaseOrderNumber", async (req, res) => {
-  const { purchaseOrderNumber } = req.params;
+router.put("/updatepo/:PurchaseOrderID", async (req, res) => {
+  const { PurchaseOrderID } = req.params;
   const {
-    CustomerID,
     CustomerSalesOrderID,
+    CustomerID,
     ProviderID,
+    PurchaseOrderNumber,
     PurchaseDate,
     Status,
     PurchaseTotalPrice,
@@ -104,6 +94,7 @@ router.put("/updatepo/:purchaseOrderNumber", async (req, res) => {
   if (
     !CustomerID ||
     !CustomerSalesOrderID ||
+    !PurchaseOrderNumber ||
     !PurchaseDate ||
     Status === undefined
   ) {
@@ -121,20 +112,22 @@ router.put("/updatepo/:purchaseOrderNumber", async (req, res) => {
         CustomerSalesOrderID = ?, 
         CustomerID = ?, 
         ProviderID = ?,
+        PurchaseOrderNumber = ?,
         PurchaseDate = ?, 
         Status = ?,
         PurchaseTotalPrice = ?
-      WHERE PurchaseOrderNumber = ?;
+      WHERE PurchaseOrderID = ?;
     `;
 
     const updatePOValues = [
       CustomerSalesOrderID,
       CustomerID,
       ProviderID || 1,
+      PurchaseOrderNumber,
       PurchaseDate,
       Status,
       PurchaseTotalPrice || 0,
-      purchaseOrderNumber,
+      PurchaseOrderID,
     ];
 
     const [poResult] = await pool.query(updatePOQuery, updatePOValues);
@@ -148,22 +141,10 @@ router.put("/updatepo/:purchaseOrderNumber", async (req, res) => {
     }
 
     if (items && items.length > 0) {
-      const deleteItemsQuery = `
-        DELETE FROM purchaseorderitems 
-        WHERE PurchaseOrderID = (SELECT PurchaseOrderID FROM purchaseorders WHERE PurchaseOrderNumber = ?);
-      `;
-      await pool.query(deleteItemsQuery, [purchaseOrderNumber]);
-
       const insertItemsQuery = `
         INSERT INTO purchaseorderitems (PurchaseOrderID, ItemID, Quantity, Price)
         VALUES ?;
       `;
-      const [poData] = await pool.query(
-        `SELECT PurchaseOrderID FROM purchaseorders WHERE PurchaseOrderNumber = ?`,
-        [purchaseOrderNumber]
-      );
-      const PurchaseOrderID = poData[0].PurchaseOrderID;
-
       const itemValues = items.map((item) => [
         PurchaseOrderID,
         item.ItemID,
