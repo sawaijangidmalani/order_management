@@ -8,11 +8,17 @@ import {
   BiDownArrowAlt,
 } from "react-icons/bi";
 import { MdDelete } from "react-icons/md";
-import axios from "axios";
 import { Tooltip, Pagination, Modal, Popconfirm } from "antd";
 import "../Style/Customer.css";
 import toast from "react-hot-toast";
 import { FaSpinner } from "react-icons/fa";
+import {
+  getCustomers,
+  checkCustomerExists,
+  addCustomer,
+  updateCustomer,
+  deleteCustomer,
+} from "../api/CustomerApi";
 
 function ManageCustomer() {
   const [customers, setCustomers] = useState([]);
@@ -58,39 +64,37 @@ function ManageCustomer() {
 
   useEffect(() => {
     const fetchCustomers = async () => {
+      setIsLoading(true);
       try {
-        const result = await axios.get(
-          "http://localhost:8000/customer/getCustomerData"
-        );
-        setCustomers(result.data);
-        setFilteredCustomers(result.data);
+        const data = await getCustomers();
+        setCustomers(data);
+        setFilteredCustomers(data);
       } catch (err) {
         console.error("Error fetching customer data:", err);
+        toast.error("Failed to fetch customers");
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchCustomers();
   }, []);
 
-  const handleDelete = (email) => {
+  const handleDelete = async (email) => {
     setIsLoading(true);
-    axios
-      .delete(`http://localhost:8000/customer/deleteCustomer`, {
-        data: { email },
-      })
-      .then(() => {
-        toast.success("Customer deleted successfully");
-        setCustomers(customers.filter((customer) => customer.email !== email));
-        setFilteredCustomers(
-          filteredCustomers.filter((customer) => customer.email !== email)
-        );
-        window.location.reload();
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        console.log(err);
-        setIsLoading(false);
-      });
+    try {
+      await deleteCustomer(email);
+      toast.success("Customer deleted successfully");
+      setCustomers(customers.filter((customer) => customer.Email !== email));
+      setFilteredCustomers(
+        filteredCustomers.filter((customer) => customer.Email !== email)
+      );
+    } catch (err) {
+      console.error("Error deleting customer:", err);
+      toast.error("Failed to delete customer");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleAddCustomer = () => {
@@ -292,6 +296,9 @@ function ManageCustomer() {
             closeModal={closeModal}
             editingCustomer={editingCustomer}
             updateCustomerList={updateCustomerList}
+            checkCustomerList={checkCustomerExists}
+            addCustomer={addCustomer}
+            updateCustomer={updateCustomer}
           />
         )}
       </div>

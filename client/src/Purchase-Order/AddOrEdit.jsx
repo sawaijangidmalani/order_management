@@ -31,7 +31,7 @@ const AddOrEdit = ({ selectedPurchaseId, onClose, itemToEdit }) => {
     const fetchProducts = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:8000/customerpo/getcustomersalesorderitems"
+          "https://order-management-tgh3.onrender.com/customerpo/getcustomersalesorderitems"
         );
         setProducts(res.data.data);
         console.log("CPO Item:", res.data.data);
@@ -46,7 +46,7 @@ const AddOrEdit = ({ selectedPurchaseId, onClose, itemToEdit }) => {
     const fetchPO = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:8000/po/getpo"
+          "https://order-management-tgh3.onrender.com/po/getpo"
         );
         if (res.data && Array.isArray(res.data)) {
           setPurchaseOrders(res.data);
@@ -157,12 +157,12 @@ const AddOrEdit = ({ selectedPurchaseId, onClose, itemToEdit }) => {
       let response;
       if (itemToEdit) {
         response = await axios.put(
-          "http://localhost:8000/po/editpurchaseorderitems",
+          "https://order-management-tgh3.onrender.com/po/editpurchaseorderitems",
           purchaseOrderItem
         );
       } else {
         response = await axios.post(
-          "http://localhost:8000/po/addpurchaseorderitems",
+          "https://order-management-tgh3.onrender.com/po/addpurchaseorderitems",
           purchaseOrderItem
         );
       }

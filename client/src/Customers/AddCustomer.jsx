@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { FaSpinner } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "../Style/Add.css";
-import axios from "axios";
+import { checkCustomerExists, addCustomer, updateCustomer } from "../api/CustomerApi";
 import toast from "react-hot-toast";
 
 const Modal = styled.div`
@@ -63,24 +63,6 @@ function AddCustomer({ closeModal, editingCustomer }) {
     });
   };
 
-  const checkCustomerExists = async (name, email) => {
-    try {
-      const response = await axios.get(
-        "http://localhost:8000/customer/checkDuplicate",
-        {
-          params: { name, email },
-        }
-      );
-      return {
-        nameExists: response.data.nameExists,
-        emailExists: response.data.emailExists,
-      };
-    } catch (error) {
-      console.error("Error checking customer:", error);
-      return { nameExists: false, emailExists: false };
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -90,10 +72,6 @@ function AddCustomer({ closeModal, editingCustomer }) {
     }
 
     setLoading(true);
-
-    const apiUrl = editingCustomer
-      ? "http://localhost:8000/customer/updateCustomer"
-      : "http://localhost:8000/customer/add_customer";
 
     try {
       if (!editingCustomer) {
@@ -117,12 +95,13 @@ function AddCustomer({ closeModal, editingCustomer }) {
         }
       }
 
-      const response = await axios.post(apiUrl, formData);
-      toast.success(
-        editingCustomer
-          ? "Customer updated successfully!"
-          : "Customer saved successfully!"
-      );
+      if (editingCustomer) {
+        await updateCustomer(formData);
+        toast.success("Customer updated successfully!");
+      } else {
+        await addCustomer(formData);
+        toast.success("Customer saved successfully!");
+      }
 
       setTimeout(() => {
         window.location.reload();
@@ -185,8 +164,7 @@ function AddCustomer({ closeModal, editingCustomer }) {
                 </label>
 
                 <label className="customer-form__label">
-                  Phone:
-                  <span style={{ color: "red" }}>*</span>
+                  Phone: <span style={{ color: "red" }}>*</span>
                   <input
                     type="tel"
                     name="Phone"
@@ -245,8 +223,7 @@ function AddCustomer({ closeModal, editingCustomer }) {
                 </label>
 
                 <label className="customer-form__label">
-                  Status:
-                  <span style={{ color: "red" }}>*</span>
+                  Status: <span style={{ color: "red" }}>*</span>
                   <select
                     name="Status"
                     value={formData.Status}
@@ -261,8 +238,7 @@ function AddCustomer({ closeModal, editingCustomer }) {
                 </label>
 
                 <label className="customer-form__label">
-                  GST:
-                  <span style={{ color: "red" }}>*</span>
+                  GST: <span style={{ color: "red" }}>*</span>
                   <input
                     type="text"
                     name="GST"

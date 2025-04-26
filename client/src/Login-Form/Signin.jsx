@@ -86,7 +86,7 @@ function Signin() {
       setLoading(true);
       try {
         const { data } = await axios.post(
-          "http://localhost:8000/auth/signup",
+          "https://order-management-tgh3.onrender.com/auth/signup",
           sign
         );
         if (data?.success) {

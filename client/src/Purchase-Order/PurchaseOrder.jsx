@@ -39,7 +39,7 @@ const PurchaseOrder = ({
     const fetchCustomerPoData = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8000/customerpo/getCustomerPo"
+          "https://order-management-tgh3.onrender.com/customerpo/getCustomerPo"
         );
         const activeCustomerPo = response.data.filter(
           (customer) => customer.Status === 1
@@ -73,7 +73,7 @@ const PurchaseOrder = ({
     const fetchSalesData = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8000/customerpo/getCustomerPo"
+          "https://order-management-tgh3.onrender.com/customerpo/getCustomerPo"
         );
         const activeCPOs = response.data
           .filter(
@@ -150,12 +150,12 @@ const PurchaseOrder = ({
           data.PurchaseOrderID
         );
         response = await axios.put(
-          `http://localhost:8000/po/updatepo/${data.PurchaseOrderID}`,
+          `https://order-management-tgh3.onrender.com/po/updatepo/${data.PurchaseOrderID}`,
           data
         );
       } else {
         console.log("Sending POST request");
-        response = await axios.post("http://localhost:8000/po/insertpo", data);
+        response = await axios.post("https://order-management-tgh3.onrender.com/po/insertpo", data);
       }
 
       if (response.status === 200 || response.status === 201) {

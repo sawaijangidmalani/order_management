@@ -1,10 +1,14 @@
-import axios from "axios";
 import { useEffect, useState, useRef } from "react";
 import "../Style/Add.css";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { FaSpinner } from "react-icons/fa";
+import {
+  checkSupplierExists,
+  addSupplier,
+  updateSupplier,
+} from "../api/SupplierApi";
 
 const Modal = styled.div`
   position: fixed;
@@ -14,10 +18,11 @@ const Modal = styled.div`
   border-radius: 20px;
 `;
 
-function AddSuppliers({ closeModal, editingSuppliers }) {
+function AddSuppliers({ closeModal, editingSuppliers, updateSuppliersList }) {
   const navigate = useNavigate();
   const modalRef = useRef();
   const [loading, setLoading] = useState(false);
+  const [showForm, setShowForm] = useState(true);
 
   const initialData = {
     SupplierID: null,
@@ -34,7 +39,6 @@ function AddSuppliers({ closeModal, editingSuppliers }) {
   };
 
   const [formData, setFormData] = useState({ ...initialData });
-  const [showForm, setShowForm] = useState(true);
 
   useEffect(() => {
     if (editingSuppliers) {
@@ -63,66 +67,54 @@ function AddSuppliers({ closeModal, editingSuppliers }) {
     });
   };
 
-  const checkSupplierExists = async (name, email) => {
-    try {
-      const response = await axios.get("http://localhost:8000/supplier/checkDuplicate", {
-        params: { name, email }
-      });
-      return {
-        nameExists: response.data.nameExists,
-        emailExists: response.data.emailExists
-      };
-    } catch (error) {
-      console.error("Error checking supplier:", error);
-      return { nameExists: false, emailExists: false };
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.Email || !formData.Name || !formData.Phone) {
+    if (
+      !formData.Email ||
+      !formData.Name ||
+      !formData.Phone ||
+      !formData.Status ||
+      !formData.GST
+    ) {
       toast.warn("Please fill out all required fields.");
       return;
     }
 
     setLoading(true);
 
-    const apiUrl = editingSuppliers
-      ? "http://localhost:8000/supplier/updateSupplier"
-      : "http://localhost:8000/supplier/add_supplier";
-
     try {
       if (!editingSuppliers) {
-        const { nameExists, emailExists } = await checkSupplierExists(formData.Name, formData.Email);
-        
+        const { nameExists, emailExists } = await checkSupplierExists(
+          formData.Name,
+          formData.Email
+        );
+
         if (nameExists && emailExists) {
           toast.error("A supplier with this name and email already exists!");
-          setLoading(false);
           return;
         } else if (nameExists) {
           toast.error("A supplier with this name already exists!");
-          setLoading(false);
           return;
         } else if (emailExists) {
           toast.error("A supplier with this email already exists!");
-          setLoading(false);
           return;
         }
       }
 
-      const response = await axios.post(apiUrl, formData);
+      const response = editingSuppliers
+        ? await updateSupplier(formData)
+        : await addSupplier(formData);
+
       toast.success(
         editingSuppliers
           ? "Supplier updated successfully!"
-          : "Supplier saved successfully!"
+          : "Supplier added successfully!"
       );
 
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      updateSuppliersList(response);
     } catch (error) {
-      toast.error("Something went wrong. Try again.");
+      // toast.error("Something went wrong. Try again.");
       console.error("Error:", error);
     } finally {
       setLoading(false);
@@ -247,7 +239,7 @@ function AddSuppliers({ closeModal, editingSuppliers }) {
                     className="customer-form__input"
                     required
                   >
-                    <option>Select Status</option>
+                    <option value="">Select Status</option>
                     <option value={1}>Active</option>
                     <option value={0}>Inactive</option>
                   </select>
